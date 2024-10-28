@@ -30,7 +30,7 @@ void AstarPathFinder::initGridMap(double _resolution, Vector3d global_xyz_l,
   for (int i = 0; i < GLX_SIZE; i++) {
     GridNodeMap[i] = new GridNodePtr *[GLY_SIZE];
     for (int j = 0; j < GLY_SIZE; j++) {
-      GridNodeMap[i][j] = new GridNodePtr[GLZ_SIZE];
+      GridNodeMap[i][j] = new GridNodePtr[GLZ_SIZE]; //selfadd:???
       for (int k = 0; k < GLZ_SIZE; k++) {
         Vector3i tmpIdx(i, j, k);
         Vector3d pos = gridIndex2coord(tmpIdx);
@@ -228,7 +228,7 @@ double AstarPathFinder::getHeu(GridNodePtr node1, GridNodePtr node2) {
 
 void AstarPathFinder::AstarGraphSearch(Vector3d start_pt, Vector3d end_pt) {
   ros::Time time_1 = ros::Time::now();
-
+  cout <<"***start Astar graph search***"<< endl; // for test
   // index of start_point and end_point
   Vector3i start_idx = coord2gridIndex(start_pt);
   Vector3i end_idx = coord2gridIndex(end_pt);
@@ -258,7 +258,7 @@ void AstarPathFinder::AstarGraphSearch(Vector3d start_pt, Vector3d end_pt) {
   startPtr->gScore = 0;
   startPtr->fScore = getHeu(startPtr, endPtr);
   startPtr->id = 1;
-  startPtr->coord = start_pt;
+  startPtr->coord = start_pt; // start_pt:Vector3d
   openSet.insert(make_pair(startPtr->fScore, startPtr));
 
   /**
@@ -277,6 +277,7 @@ void AstarPathFinder::AstarGraphSearch(Vector3d start_pt, Vector3d end_pt) {
    * STEP 1.3:  finish the loop
    *
    * **/
+  cout <<"***inside Astar graph search, before while loop***"<< endl; // for test 
   while (!openSet.empty()) {
     //get a current ptr from open set, //erase it from openset, and //put it into close set(id=-1)
     currentPtr = openSet.begin()->second;
@@ -290,9 +291,10 @@ void AstarPathFinder::AstarGraphSearch(Vector3d start_pt, Vector3d end_pt) {
         ROS_WARN("[A*]{sucess}  Time in A*  is %f ms, path cost if %f m", (time_2 - time_1).toSec() * 1000.0, currentPtr->gScore * resolution );            
         return;
     }// if know the last one, than use "father" can know the whole path
-
+    // cout <<"***inside Astar graph search, before AstarGetSucc***"<< endl; // for test
     //get neibour and sucdist
-    AstarGetSucc(currentPtr,neighborPtrSets,edgeCostSets);//selfadd: do i need to add &?   
+    AstarGetSucc(currentPtr,neighborPtrSets,edgeCostSets);//selfadd: do i need to add &?  
+    // cout <<"***inside Astar graph search, before for loop for neighbour***"<< endl; // for test 
     //for every neighbour:
     for(int i = 0; i < (int)neighborPtrSets.size(); i++){
       neighborPtr = neighborPtrSets[i];//selfadd: () or []???
@@ -315,6 +317,7 @@ void AstarPathFinder::AstarGraphSearch(Vector3d start_pt, Vector3d end_pt) {
         neighborPtr->fScore = neighborPtr->gScore + getHeu(neighborPtr, endPtr);
         neighborPtr->cameFrom = currentPtr;
         openSet.insert(make_pair(neighborPtr->fScore, neighborPtr));// is insert only for customized data structure like openset
+        neighborPtr->id=1;
         continue;
       }
       //if in close set
@@ -323,8 +326,9 @@ void AstarPathFinder::AstarGraphSearch(Vector3d start_pt, Vector3d end_pt) {
         continue;
       }
     }
+    // cout <<"***inside Astar graph search, after for loop for neighbour***"<< endl; // for test 
   }
-
+  cout <<"***inside Astar graph search, after while loop***"<< endl; // for test 
   // if search fails
   ros::Time time_2 = ros::Time::now();
   if ((time_2 - time_1).toSec() > 0.1)
@@ -356,6 +360,7 @@ vector<Vector3d> AstarPathFinder::getPath() { //所以在Astarpathsearcher中生
 
 vector<Vector3d> AstarPathFinder::pathSimplify(const vector<Vector3d> &path,
                                                double path_resolution) {
+  cout <<"***start pathSimplify***"<< endl; // for test
   vector<Vector3d> subPath;
   /**
    *
@@ -371,27 +376,36 @@ vector<Vector3d> AstarPathFinder::pathSimplify(const vector<Vector3d> &path,
   double dmax = 0;
   size_t index = 0;
   const size_t end = path.size() - 1;
-  
+  cout <<"***inside pathSimplify, before for loop to calculate perpendicular distance for each point***"<< endl; // for test
   // Calculate perpendicular distance for each point
+  // change to use cross product 
+  Vector3d start_point = path[0];
+  Vector3d end_point = path[end];
   for (size_t i = 1; i < end; ++i) {
       // double d = perpendicularDistance(path[i], path[0], path[end]);
       // calculate perpendicular distance
-      double mm = path[end][0] - path[0][0];
-      double nn = path[end][1] * path[0][1];
-      double pp = path[end][2] * path[0][2];
-      double numerator = std::sqrt(std::pow((path[end][1] - path[i][1]) * pp - (path[end][2] - path[i][2]) * nn ,2) + 
-                                  std::pow((path[end][2] - path[i][2]) * mm - (path[end][0] - path[i][0]) * pp,2 ) +
-                                  std::pow((path[end][0] - path[i][0]) * nn - (path[end][1] - path[i][1]) * mm,2 ));
+      Vector3d i_point = path[i];
+
+      Vector3d vec1 = end_point - start_point;
+      Vector3d vec2 = i_point - start_point;
+      double perpen_dist = (vec2.cross(vec1)).norm() / vec1.norm();
+      // double mm = path[end][0] - path[0][0];
+      // double nn = path[end][1] * path[0][1];
+      // double pp = path[end][2] * path[0][2];
+      // double numerator = std::sqrt(std::pow((path[end][1] - path[i][1]) * pp - (path[end][2] - path[i][2]) * nn ,2) + 
+      //                             std::pow((path[end][2] - path[i][2]) * mm - (path[end][0] - path[i][0]) * pp,2 ) +
+      //                             std::pow((path[end][0] - path[i][0]) * nn - (path[end][1] - path[i][1]) * mm,2 ));
                                   
-      double denominator = std::sqrt(std::pow(mm, 2) + 
-                                    std::pow(nn, 2)+std::pow(pp, 2));      
-      double perpen_dist = numerator / denominator;
+      // double denominator = std::sqrt(std::pow(mm, 2) + 
+      //                               std::pow(nn, 2)+std::pow(pp, 2));      
+      // double perpen_dist = numerator / denominator;
 
       if (perpen_dist > dmax) {
           index = i;
           dmax = perpen_dist;
       }
   }
+  cout <<"***inside pathSimplify, before cheking if dmax is larger than path_resolution***"<< endl; // for test
   // check if dmax is larger than path_resolution
   if (dmax > path_resolution){
       // Split points and recursive calls
@@ -399,17 +413,22 @@ vector<Vector3d> AstarPathFinder::pathSimplify(const vector<Vector3d> &path,
       // vector<Vector3d> secondPart = path.segment(index, path.size()-index);// can?//chongfu?
       vector<Vector3d> firstPart(path.begin(), path.begin() + index);
       vector<Vector3d> secondPart(path.begin() + index,path.end());
-      
+      cout <<"***inside pathSimplify, inside cheking if, before recResults1,recResults2***"<< endl; // for test
       vector<Vector3d> recResults1 = pathSimplify(firstPart, path_resolution);
       vector<Vector3d> recResults2 = pathSimplify(secondPart, path_resolution);
 
       // subPath.segment(0,recResults1.size()-2) = recResults1.segment(0,recResults1.size()-2);
       // subPath.segment(0,recResults2.size()) = recResults2(0,recResults2.size());// is it right?
       // subPath.assign(recResults1.begin(), recResults1.begin() + (recResults1.size()-2));
-      std::copy(recResults1.begin(), recResults1.begin() + (recResults1.size()-2),subPath.begin());
-      std::copy(recResults2.begin(), recResults2.end(), subPath.begin()+recResults1.size()-1);
+      cout <<"***inside pathSimplify, inside cheking if, before assigning subpath***"<< endl; // for test
+      subPath.reserve(recResults1.size() + recResults2.size() - 1);
+      subPath.insert(subPath.end(), recResults1.begin(), recResults1.end());
+      subPath.insert(subPath.end(), recResults2.begin() + 1, recResults2.end());
+      // std::copy(recResults1.begin(), recResults1.begin() + (recResults1.size()-2),subPath.begin());
+      // std::copy(recResults2.begin(), recResults2.end(), subPath.begin()+recResults1.size()-1);
 
   }else{
+    subPath.reserve(2); // added to prevent multiple reallocations
     subPath.push_back(path[0]);
     subPath.push_back(path[end]);// is it ok?
   }
@@ -438,6 +457,7 @@ Vector3d AstarPathFinder::getPosPoly(MatrixXd polyCoeff, int k, double t) {
 }
 
 int AstarPathFinder::safeCheck(MatrixXd polyCoeff, VectorXd time) {
+  cout << "[Debug] inside Safety check, just strat" << endl; // for test
   int unsafe_segment = -1; //-1 -> the whole trajectory is safe
   /**
    *
@@ -456,7 +476,7 @@ int AstarPathFinder::safeCheck(MatrixXd polyCoeff, VectorXd time) {
           // Vector3d vel = Vector3d::Zero();
           
           // Evaluate position polynomial //selfadd:  MatrixXd PolyCoeff(m, 3 * p_num1d);
-          for(int i = 0; i < polyCoeff.rows()/3; i++) {//selfadd:???
+          for(int i = 0; i < polyCoeff.cols()/3; i++) {//selfadd:???
               Vector3d polyCoeff_trans = polyCoeff.block<1,3>(seg, i*3).transpose();
               pos += polyCoeff_trans * pow(t, i);// but pos 是列向量？
               // if(i > 0) {

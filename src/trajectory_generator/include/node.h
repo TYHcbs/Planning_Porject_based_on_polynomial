@@ -9,7 +9,7 @@
 
 #define inf 1>>20
 struct GridNode;
-typedef GridNode* GridNodePtr;
+typedef GridNode* GridNodePtr; // selfadd: ???
 
 struct GridNode
 {     
