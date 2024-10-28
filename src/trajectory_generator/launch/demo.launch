@@ -114,7 +114,7 @@
    </node> 
  
    <!-- Odom Visualization -->
-   <node pkg="odom_visualization" name="odom_visualization" type="odom_visualization" output="screen">
+   <node pkg="odom_visualization" name="odom_visualization" type="odom_visualization" output="screen" launch-prefix="gdb -ex run --args"> <!--modified--> 
      <remap from="~odom"            to="/visual_slam/odom"/>
      <param name="color/a"          value="0.8"/>    
      <param name="color/r"          value="0.0"/>        
