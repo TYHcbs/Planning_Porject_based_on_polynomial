@@ -277,7 +277,7 @@ void AstarPathFinder::AstarGraphSearch(Vector3d start_pt, Vector3d end_pt) {
    * STEP 1.3:  finish the loop
    *
    * **/
-  cout <<"***inside Astar graph search, before while loop***"<< endl; // for test 
+  // cout <<"***inside Astar graph search, before while loop***"<< endl; // for test 
   while (!openSet.empty()) {
     //get a current ptr from open set, //erase it from openset, and //put it into close set(id=-1)
     currentPtr = openSet.begin()->second;
@@ -328,7 +328,7 @@ void AstarPathFinder::AstarGraphSearch(Vector3d start_pt, Vector3d end_pt) {
     }
     // cout <<"***inside Astar graph search, after for loop for neighbour***"<< endl; // for test 
   }
-  cout <<"***inside Astar graph search, after while loop***"<< endl; // for test 
+  // cout <<"***inside Astar graph search, after while loop***"<< endl; // for test 
   // if search fails
   ros::Time time_2 = ros::Time::now();
   if ((time_2 - time_1).toSec() > 0.1)
@@ -360,7 +360,7 @@ vector<Vector3d> AstarPathFinder::getPath() { //所以在Astarpathsearcher中生
 
 vector<Vector3d> AstarPathFinder::pathSimplify(const vector<Vector3d> &path,
                                                double path_resolution) {
-  cout <<"***start pathSimplify***"<< endl; // for test
+  // cout <<"***start pathSimplify***"<< endl; // for test
   vector<Vector3d> subPath;
   /**
    *
@@ -376,7 +376,7 @@ vector<Vector3d> AstarPathFinder::pathSimplify(const vector<Vector3d> &path,
   double dmax = 0;
   size_t index = 0;
   const size_t end = path.size() - 1;
-  cout <<"***inside pathSimplify, before for loop to calculate perpendicular distance for each point***"<< endl; // for test
+  // cout <<"***inside pathSimplify, before for loop to calculate perpendicular distance for each point***"<< endl; // for test
   // Calculate perpendicular distance for each point
   // change to use cross product 
   Vector3d start_point = path[0];
@@ -405,7 +405,7 @@ vector<Vector3d> AstarPathFinder::pathSimplify(const vector<Vector3d> &path,
           dmax = perpen_dist;
       }
   }
-  cout <<"***inside pathSimplify, before cheking if dmax is larger than path_resolution***"<< endl; // for test
+  // cout <<"***inside pathSimplify, before cheking if dmax is larger than path_resolution***"<< endl; // for test
   // check if dmax is larger than path_resolution
   if (dmax > path_resolution){
       // Split points and recursive calls
@@ -413,14 +413,14 @@ vector<Vector3d> AstarPathFinder::pathSimplify(const vector<Vector3d> &path,
       // vector<Vector3d> secondPart = path.segment(index, path.size()-index);// can?//chongfu?
       vector<Vector3d> firstPart(path.begin(), path.begin() + index);
       vector<Vector3d> secondPart(path.begin() + index,path.end());
-      cout <<"***inside pathSimplify, inside cheking if, before recResults1,recResults2***"<< endl; // for test
+      // cout <<"***inside pathSimplify, inside cheking if, before recResults1,recResults2***"<< endl; // for test
       vector<Vector3d> recResults1 = pathSimplify(firstPart, path_resolution);
       vector<Vector3d> recResults2 = pathSimplify(secondPart, path_resolution);
 
       // subPath.segment(0,recResults1.size()-2) = recResults1.segment(0,recResults1.size()-2);
       // subPath.segment(0,recResults2.size()) = recResults2(0,recResults2.size());// is it right?
       // subPath.assign(recResults1.begin(), recResults1.begin() + (recResults1.size()-2));
-      cout <<"***inside pathSimplify, inside cheking if, before assigning subpath***"<< endl; // for test
+      // cout <<"***inside pathSimplify, inside cheking if, before assigning subpath***"<< endl; // for test
       subPath.reserve(recResults1.size() + recResults2.size() - 1);
       subPath.insert(subPath.end(), recResults1.begin(), recResults1.end());
       subPath.insert(subPath.end(), recResults2.begin() + 1, recResults2.end());
@@ -457,7 +457,7 @@ Vector3d AstarPathFinder::getPosPoly(MatrixXd polyCoeff, int k, double t) {
 }
 
 int AstarPathFinder::safeCheck(MatrixXd polyCoeff, VectorXd time) {
-  cout << "[Debug] inside Safety check, just strat" << endl; // for test
+  // cout << "[Debug] inside Safety check, just strat" << endl; // for test
   int unsafe_segment = -1; //-1 -> the whole trajectory is safe
   /**
    *

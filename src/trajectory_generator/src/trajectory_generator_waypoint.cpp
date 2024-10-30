@@ -27,9 +27,9 @@ Eigen::MatrixXd TrajectoryGeneratorWaypoint::PolyQPGeneration(
   // derivatives, just assume them be 0;
   int p_order = 2 * d_order - 1; // the order of polynomial
   int p_num1d = p_order + 1;     // the number of variables in each segment
-  cout << "[Debug] inside PolyQPGeneration, 111" << endl; // for test
+  // cout << "[Debug] inside PolyQPGeneration, 111" << endl; // for test
   int m = Time.size();
-  cout << "[Debug] inside PolyQPGeneration, 222" << endl; // for test
+  // cout << "[Debug] inside PolyQPGeneration, 222" << endl; // for test
   MatrixXd PolyCoeff(m, 3 * p_num1d); //每行是一段polynomial，一行内，三个三个一组(x，y，z)，一共p_num1d组
 
   /**
@@ -39,48 +39,50 @@ Eigen::MatrixXd TrajectoryGeneratorWaypoint::PolyQPGeneration(
    *
    * **/
   //get C,A,Q
-  cout << "[Debug] inside PolyQPGeneration, 333" << endl; // for test
+  // cout << "[Debug] inside PolyQPGeneration, 333" << endl; // for test
   Matrix3d I_3x3 = Matrix3d::Identity();
   MatrixXd I_12x12 = MatrixXd::Identity(12,12);
-  cout << "[Debug] inside PolyQPGeneration, 444" << endl; // for test
+  MatrixXd One_3x3 = MatrixXd::Ones(3,3);
+  // cout << "[Debug] inside PolyQPGeneration, 444" << endl; // for test
   MatrixXd Q_Matrix = MatrixXd::Zero(3*p_num1d*m,3*p_num1d*m);// define size? //24mx24m
   MatrixXd A_Matrix = MatrixXd::Zero(3*p_num1d*m,3*p_num1d*m); //24mx24m
   MatrixXd C_Matrix_Trans = MatrixXd::Zero(24*m,12*m+12); //24mx12m+12
-  cout << "[Debug] inside PolyQPGeneration, 555" << endl; // for test
+  // cout << "[Debug] inside PolyQPGeneration, 555" << endl; // for test
   C_Matrix_Trans.block(0,0,3*4,3*4) = I_12x12;
   C_Matrix_Trans.block(24*m-24+12,3*(m+3),3*4,3*4) = I_12x12;
-  cout << "[Debug] inside PolyQPGeneration, 666" << endl; // for test
+  // cout << "[Debug] inside PolyQPGeneration, 666" << endl; // for test
   for(int i = 0;i<m;i++){
   double tm = Time(i);
-  cout << "[Debug] inside polynomial trajectory, constructing Qi" << endl; // for test
+  // cout << "[Debug] inside polynomial trajectory, constructing Qi" << endl; // for test
   //Construct Qi:
   MatrixXd Q_i = MatrixXd::Zero(3 * p_num1d, 3 * p_num1d);
-  Q_i.block(0,0,3,3) = 705600*pow(tm,6)*I_3x3;
-  Q_i.block(0,3,3,3) = 302400*pow(tm,5)*I_3x3;
-  Q_i.block(0,6,3,3) = 100800*pow(tm,4)*I_3x3;
-  Q_i.block(0,9,3,3) = 20160*pow(tm,3)*I_3x3;
+  Q_i.block(21,21,3,3) = 705600*pow(tm,6)*One_3x3;
+  Q_i.block(21,18,3,3) = 302400*pow(tm,5)*One_3x3;
+  Q_i.block(21,15,3,3) = 100800*pow(tm,4)*One_3x3;
+  Q_i.block(21,12,3,3) = 20160*pow(tm,3)*One_3x3;
 
-  Q_i.block(3,0,3,3) = 302400*pow(tm,5)*I_3x3;
-  Q_i.block(3,3,3,3) = 129600*pow(tm,4)*I_3x3;
-  Q_i.block(3,6,3,3) = 43200*pow(tm,3)*I_3x3;
-  Q_i.block(3,9,3,3) = 8640*pow(tm,2)*I_3x3;
+  Q_i.block(18,21,3,3) = 302400*pow(tm,5)*One_3x3;
+  Q_i.block(18,18,3,3) = 129600*pow(tm,4)*One_3x3;
+  Q_i.block(18,15,3,3) = 43200*pow(tm,3)*One_3x3;
+  Q_i.block(18,12,3,3) = 8640*pow(tm,2)*One_3x3;
 
-  Q_i.block(6,0,3,3) = 100800*pow(tm,4)*I_3x3;
-  Q_i.block(6,3,3,3) = 43200*pow(tm,3)*I_3x3;
-  Q_i.block(6,6,3,3) = 14400*pow(tm,2)*I_3x3;
-  Q_i.block(6,9,3,3) = 2880*pow(tm,1)*I_3x3;
+  Q_i.block(15,21,3,3) = 100800*pow(tm,4)*One_3x3;
+  Q_i.block(15,18,3,3) = 43200*pow(tm,3)*One_3x3;
+  Q_i.block(15,15,3,3) = 14400*pow(tm,2)*One_3x3;
+  Q_i.block(15,12,3,3) = 2880*pow(tm,1)*One_3x3;
 
-  Q_i.block(9,0,3,3) = 20160*pow(tm,3)*I_3x3;
-  Q_i.block(9,3,3,3) = 8640*pow(tm,2)*I_3x3;
-  Q_i.block(9,6,3,3) = 2880*pow(tm,1)*I_3x3;
-  Q_i.block(9,9,3,3) = 576*I_3x3;
+  Q_i.block(12,21,3,3) = 20160*pow(tm,3)*One_3x3;
+  Q_i.block(12,18,3,3) = 8640*pow(tm,2)*One_3x3;
+  Q_i.block(12,15,3,3) = 2880*pow(tm,1)*One_3x3;
+  Q_i.block(12,12,3,3) = 576*One_3x3;
+  cout<<"Q_i= "<<Q_i<<endl; // for test
   // Q_i <<  705600*pow(Time(i),6)*I_3x3, 302400*pow(Time(i),5)*I_3x3, 100800*pow(Time(i),4)*I_3x3, 20160*pow(Time(i),3)*I_3x3,
   //         302400*pow(Time(i),5)*I_3x3, 129600*pow(Time(i),4)*I_3x3, 43200*pow(Time(i),3)*I_3x3, 8640*pow(Time(i),2)*I_3x3,
   //         100800*pow(Time(i),4)*I_3x3, 43200*pow(Time(i),3)*I_3x3, 14400*pow(Time(i),2)*I_3x3, 2880*pow(Time(i),1)*I_3x3,
   //         20160*pow(Time(i),3)*I_3x3,  8640*pow(Time(i),2)*I_3x3,  2880*pow(Time(i),1)*I_3x3,  576;
-  cout << "[Debug] inside polynomial trajectory, constructing Q_Matrix" << endl; // for test
+  // cout << "[Debug] inside polynomial trajectory, constructing Q_Matrix" << endl; // for test
   Q_Matrix.block(3*p_num1d*i, 3*p_num1d*i, 3*p_num1d, 3*p_num1d) = Q_i;
-  cout << "[Debug] inside polynomial trajectory, constructing Ai" << endl; // for test
+  // cout << "[Debug] inside polynomial trajectory, constructing Ai" << endl; // for test
   //Construct Ai:
   MatrixXd A_i = MatrixXd::Zero(3 * p_num1d, 3 * p_num1d);
   // A_i.block(0,3 * (p_num1d-1),3,3) = 1*I_3x3;
@@ -102,10 +104,11 @@ Eigen::MatrixXd TrajectoryGeneratorWaypoint::PolyQPGeneration(
           // 7*pow(tm,6)*I_3x3, 6*pow(tm,5)*I_3x3, 5*pow(tm,4)*I_3x3, 4*pow(tm,3)*I_3x3, 3*pow(tm,2)*I_3x3, 2*pow(tm,1)*I_3x3, pow(tm,0)*I_3x3, 0*I_3x3,
           // 42*pow(tm,5)*I_3x3, 30*pow(tm,4)*I_3x3, 20*pow(tm,3)*I_3x3, 12*pow(tm,2)*I_3x3, 6*pow(tm,1)*I_3x3, 2*pow(tm,0)*I_3x3, 0*I_3x3, 0*I_3x3,
           // 210*pow(tm,4)*I_3x3, 120*pow(tm,3)*I_3x3, 60*pow(tm,2)*I_3x3, 24*pow(tm,1)*I_3x3, 6*pow(tm,0)*I_3x3, 0*I_3x3, 0*I_3x3, 0*I_3x3;
-  cout << "[Debug] inside polynomial trajectory, constructing A_Matrix" << endl; // for test
+  // cout << "[Debug] inside polynomial trajectory, constructing A_Matrix" << endl; // for test
   A_Matrix.block(3*p_num1d*i, 3*p_num1d*i, 3*p_num1d, 3*p_num1d) = A_i; 
+  cout<< "A_i = " << A_i <<endl; // for test 
   
-  cout << "[Debug] inside polynomial trajectory, constructing C_Matrix"<<"m:"<<m<<"i:"<<i << endl; // for test
+  // cout << "[Debug] inside polynomial trajectory, constructing C_Matrix"<<"m:"<<m<<"i:"<<i << endl; // for test
   //Construct C_Matrix: //24mx12m+12
   if(i>0 && i<m){
     C_Matrix_Trans.block(24*i+0+ 0*3 +0, 12+ 3*(i-1) +0, 3, 3) = I_3x3; // d_{i,0}^{0},x/y/z
@@ -123,23 +126,35 @@ Eigen::MatrixXd TrajectoryGeneratorWaypoint::PolyQPGeneration(
   }
   }
   //C A^T Q A^-1 C^T = R
-  cout << "[Debug] inside polynomial trajectory, constructing C_Trans" << endl; // for test
+  // cout << "[Debug] inside polynomial trajectory, constructing C_Trans" << endl; // for test
   MatrixXd C_Matrix = C_Matrix_Trans.transpose();
-  cout << "[Debug] inside polynomial trajectory, constructing A_inv" << endl; // for test
+  // cout << "[Debug] inside polynomial trajectory, constructing A_inv" << endl; // for test
   MatrixXd A_inv(A_Matrix.rows(), A_Matrix.cols());
   Eigen::FullPivLU<Eigen::MatrixXd> lu(A_Matrix);
   A_inv = lu.inverse();
-  cout << "[Debug] inside polynomial trajectory, constructing A_invTrans" << endl; // for test
+  cout<<"A_inv size: "<<A_inv.size()<< endl;
+  // cout<<"A_inv = "<<A_inv<<endl; // for test
+  // cout << "[Debug] inside polynomial trajectory, constructing A_invTrans" << endl; // for test
   MatrixXd A_invTrans = A_inv.transpose(); // selfadd:matrix inverse note!
-  cout << "[Debug] inside polynomial trajectory, constructing R_Matrix" << endl; // for test
+  // cout << "[Debug] inside polynomial trajectory, constructing R_Matrix" << endl; // for test
   MatrixXd R_Matrix = C_Matrix*A_invTrans*Q_Matrix*A_inv*C_Matrix_Trans;
+  cout<<"R_Matrix: "<<R_Matrix<<endl; // for test
 
   //dP∗=− RPP^−1 * RFP^T *dF
-  cout << "[Debug] inside polynomial trajectory, constructing dF" << endl; // for test
+  // cout << "[Debug] inside polynomial trajectory, constructing dF" << endl; // for test
   MatrixXd R_fp = R_Matrix.block(0,3*m+21,3*m+21,9*m-9);
   MatrixXd R_pp = R_Matrix.block(3*m+21,3*m+21,9*m-9,9*m-9);
-  MatrixXd Rpp_inv = R_pp.inverse();
+  cout<<"R_pp: "<<R_pp<<endl; // for test
+
+  MatrixXd Rpp_inv(R_pp.rows(), R_pp.cols());
+  Eigen::FullPivLU<Eigen::MatrixXd> lu_2(R_pp);
+  Rpp_inv = lu_2.inverse();
+  // MatrixXd Rpp_inv = R_pp.inverse();
+  
   MatrixXd Rfp_trans = R_fp.transpose();
+  cout<<"Rpp_inv:"<<Rpp_inv<<endl; // for test
+  cout<<"Rfp_trans: "<<Rfp_trans<<endl; // for test
+
   VectorXd dF = VectorXd::Zero(3*(m+7));
   // fill in dF 
   dF.block(0,0,3,1) = Path.row(0).transpose(); //Position0
@@ -147,16 +162,20 @@ Eigen::MatrixXd TrajectoryGeneratorWaypoint::PolyQPGeneration(
   for(int j =1;j<m;j++){
     dF.block(12+3*(j-1),0,3,1) =Path.row(j).transpose(); //position condition(except p0 and pM)
   }
-  cout << "[Debug] inside polynomial trajectory, constructing dP_star" << endl; // for test
+  cout<<"dF: "<<dF; // for test
+  // cout << "[Debug] inside polynomial trajectory, constructing dP_star" << endl; // for test
   VectorXd dP_star = -1*Rpp_inv*Rfp_trans*dF;
-
+  cout<<"dP_star:"<<dP_star<<endl; // for test
   //P = A^-1*C^T*[dp,df]^T
-  cout << "[Debug] inside polynomial trajectory, constructing dPF" << endl; // for test
+  // cout << "[Debug] inside polynomial trajectory, constructing dPF" << endl; // for test
   VectorXd dPF(12*m+12); 
   dPF << dF,dP_star;
-  cout << "[Debug] inside polynomial trajectory, constructing PolyCoeff" << endl; // for test
+  cout<<"dPF:"<<dPF<<endl; // for test
+  // cout << "[Debug] inside polynomial trajectory, constructing PolyCoeff" << endl; // for test
   PolyCoeff = A_inv*C_Matrix_Trans*dPF;
+  cout<<"Polycoeff before resize:"<<PolyCoeff<<endl; // for test
   PolyCoeff.resize(m, 3 * p_num1d);
+  cout<<"Polycoeff:"<<PolyCoeff<<endl; // for test
   return PolyCoeff;
 }
 

@@ -130,7 +130,6 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/tyh/DB_plan_Project/build/gtest/cmake_install.cmake")
   include("/home/tyh/DB_plan_Project/build/read_only/Utils/quadrotor_msgs/cmake_install.cmake")
   include("/home/tyh/DB_plan_Project/build/read_only/Utils/pose_utils/cmake_install.cmake")
   include("/home/tyh/DB_plan_Project/build/read_only/quadrotor_simulator/so3_quadrotor_simulator/cmake_install.cmake")

@@ -234,9 +234,9 @@ bool trajGeneration() {
    * **/
   cout <<"***start trajGeneration***"<< endl; // for test
   _astar_path_finder->AstarGraphSearch(start_pt, target_pt);
-  cout <<"***after Astar graph search*** "<< endl; // for test
+  // cout <<"***after Astar graph search*** "<< endl; // for test
   auto grid_path = _astar_path_finder->getPath(); //selfadd:vector<Vector3d> path;
-  cout <<"***after Astar get Path ***"<< endl; // for test
+  // cout <<"***after Astar get Path ***"<< endl; // for test
 
   // Reset map for next call
 
@@ -286,9 +286,9 @@ void trajOptimization(Eigen::MatrixXd path) {
    * STEP 3.1:  finish the timeAllocation() using resonable allocation
    *
    * **/
-  cout << "[Debug] Computing time allocation" << endl; //for test
+  // cout << "[Debug] Computing time allocation" << endl; //for test
   _polyTime = timeAllocation(path); // in TimeAllocation: VectorXd time(Path.rows() - 1);
-  cout << "[Debug] Time allocation completed with " << _polyTime.size() << " segments" << endl; // for test
+  // cout << "[Debug] Time allocation completed with " << _polyTime.size() << " segments" << endl; // for test
 
   /**
    *
@@ -297,11 +297,11 @@ void trajOptimization(Eigen::MatrixXd path) {
    *
    * **/
   try {
-    cout << "[Debug] Generating polynomial trajectory" << endl; // for test
+    // cout << "[Debug] Generating polynomial trajectory" << endl; // for test
     _polyCoeff = _trajGene->PolyQPGeneration(_dev_order, path, vel, acc, _polyTime); //selfadd:   int m = Time.size(); MatrixXd PolyCoeff(m, 3 * p_num1d);
-    cout << "[Debug] Polynomial generation completed" << endl; // for test
+    // cout << "[Debug] Polynomial generation completed" << endl; // for test
   } catch (const std::exception& e) {
-    cout << "[Error] Exception in PolyQPGeneration: " << e.what() << endl; //for test
+    // cout << "[Error] Exception in PolyQPGeneration: " << e.what() << endl; //for test
     return;
   }
   
@@ -313,7 +313,7 @@ void trajOptimization(Eigen::MatrixXd path) {
    * STEP 3.3:  finish the safeCheck()
    *
    * **/
-  cout << "[Debug] doing Safety check" << endl; // for test
+  // cout << "[Debug] doing Safety check" << endl; // for test
   unsafe_segment = _astar_path_finder->safeCheck(_polyCoeff, _polyTime); //selfadd: return int
   cout << "[Debug] Safety check complete. Unsafe segment: " << unsafe_segment << endl; // for test
   MatrixXd repath = path;
@@ -369,7 +369,7 @@ void trajOptimization(Eigen::MatrixXd path) {
     unsafe_segment = _astar_path_finder->safeCheck(_polyCoeff, _polyTime);
 
   }
-  std::cout<<"***inside trajOptimization, after reoptimize***"<<"count="<< count << std::endl; // for test
+  // std::cout<<"***inside trajOptimization, after reoptimize***"<<"count="<< count << std::endl; // for test
   // visulize path and trajectory
   try{
     visPath(repath);
@@ -412,23 +412,23 @@ void trajPublish(MatrixXd polyCoeff, VectorXd time) {
                                    _polyTime(traj_msg.num_segment - 1));
   traj_msg.start_yaw = atan2(initialVel(1), initialVel(0));
   traj_msg.final_yaw = atan2(finalVel(1), finalVel(0));
-  cout<<"[Debug] inside trajPublish , after traj_msg.final_yaw"<< endl;
+  // cout<<"[Debug] inside trajPublish , after traj_msg.final_yaw"<< endl;
   poly_number = traj_msg.num_order + 1;
   // cout << "p_order:" << poly_number << endl;
   // cout << "traj_msg.num_order:" << traj_msg.num_order << endl;
   // cout << "traj_msg.num_segment:" << traj_msg.num_segment << endl;
   // MatrixXd PolyCoeff(m, 3 * p_num1d); //每行是一段polynomial，一行内，三个三个一组(x，y，z)，一共p_num1d组 //selfadd
 
-  cout << "Matrix dimensions: " << polyCoeff.rows() << " x " << polyCoeff.cols() << endl;
+  // cout << "Matrix dimensions: " << polyCoeff.rows() << " x " << polyCoeff.cols() << endl;
   // cout << "Attempting to access with i=" << i << ", max j*3=" << (poly_number-1)*3+2 << endl;
 
   if (traj_msg.num_segment > polyCoeff.rows()) {
-    cerr << "num_segment is larger than matrix rows" << endl; // for test
+    // cerr << "num_segment is larger than matrix rows" << endl; // for test
     // Handle error
   }
 
   if (poly_number * 3 > polyCoeff.cols()) {
-    cerr << "poly_number requires more columns than available" << endl; // for test
+    // cerr << "poly_number requires more columns than available" << endl; // for test
     // Handle error
   }
 
@@ -444,18 +444,18 @@ void trajPublish(MatrixXd polyCoeff, VectorXd time) {
           break;
         }
         
-      cout<<"[Debug] inside trajPublish , inside for loop, start calculate coeff_x/y/z"<< endl;
+      // cout<<"[Debug] inside trajPublish , inside for loop, start calculate coeff_x/y/z"<< endl;
       traj_msg.coef_x.push_back(polyCoeff(i, j*3+0) * pow(time(i), j));
       traj_msg.coef_y.push_back(polyCoeff(i, j*3+1) *
                                 pow(time(i), j));
       traj_msg.coef_z.push_back(polyCoeff(i, j*3+2) *
                                 pow(time(i), j)); // modifed
-      cout<<"[Debug] inside trajPublish for loop, assigning traj_msg.coef_x/y/z complited, i= "<<i<<"j= "<<j<< endl;
+      // cout<<"[Debug] inside trajPublish for loop, assigning traj_msg.coef_x/y/z complited, i= "<<i<<"j= "<<j<< endl;
     }
     traj_msg.time.push_back(time(i));
     traj_msg.order.push_back(traj_msg.num_order);
   }
-  cout<<"[Debug] inside trajPublish , after for loop"<< endl;
+  // cout<<"[Debug] inside trajPublish , after for loop"<< endl;
   traj_msg.mag_coeff = 1;
 
   count++;

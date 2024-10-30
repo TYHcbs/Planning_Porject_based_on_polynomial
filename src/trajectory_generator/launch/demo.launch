@@ -19,7 +19,7 @@
       <remap from="~local_pointcloud" to="/pcl_render_node/local_pointcloud"/> 
       <remap from="~odom"             to="/visual_slam/odom"/>
       
-      <param name="planning/vel"                value="3.0"  />
+      <param name="planning/vel"                value="0.5"  />  <!--modified 3.0-->
       <param name="planning/acc"                value="2.0"  />
       <param name="planning/dev_order"          value="4"    />
       <param name="planning/min_order"          value="3"    />
@@ -132,7 +132,7 @@
 
   <!-- Start rviz -->
   <node name="rviz" pkg="rviz" type="rviz" output="screen"
-       args="-d $(find trajectory_generator)/launch/rviz_config/demo.rviz"> 
+       args="--verbose -d $(find trajectory_generator)/launch/rviz_config/demo.rviz"> 
   </node>
 
 </launch>
