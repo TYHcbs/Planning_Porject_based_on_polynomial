@@ -436,7 +436,7 @@ vector<Vector3d> AstarPathFinder::pathSimplify(const vector<Vector3d> &path,
   return subPath;
 }
 
-Vector3d AstarPathFinder::getPosPoly(MatrixXd polyCoeff, int k, double t) {
+Vector3d AstarPathFinder::getPosPoly(MatrixXd polyCoeff, int k, double t) { //selfadd: polyCoeff: m x 3*8
   Vector3d ret;
   int _poly_num1D = (int)polyCoeff.cols() / 3;
   for (int dim = 0; dim < 3; dim++) {
@@ -476,9 +476,15 @@ int AstarPathFinder::safeCheck(MatrixXd polyCoeff, VectorXd time) {
           // Vector3d vel = Vector3d::Zero();
           
           // Evaluate position polynomial //selfadd:  MatrixXd PolyCoeff(m, 3 * p_num1d);
-          for(int i = 0; i < polyCoeff.cols()/3; i++) {//selfadd:???
-              Vector3d polyCoeff_trans = polyCoeff.block<1,3>(seg, i*3).transpose();
-              pos += polyCoeff_trans * pow(t, i);// but pos 是列向量？
+          int p_num1d = polyCoeff.cols()/3;
+          for(int degree = 0; degree < p_num1d; degree++) {
+            cout<<"in safecheck, seg, degree= "<<seg<<"/"<<segments<<","<<degree<<"/"<<p_num1d<<endl; // for test
+              Vector3d polyCoeff_trans;
+              polyCoeff_trans(0) = polyCoeff(seg,degree);
+              polyCoeff_trans(1) = polyCoeff(seg,p_num1d+degree);
+              polyCoeff_trans(2) = polyCoeff(seg,2*p_num1d+degree);
+              pos += polyCoeff_trans * pow(t, degree);// but pos 是列向量？
+              cout<<"pos= "<<pos<<endl;
               // if(i > 0) {
               //     vel += i * polyCoeff.block<3,1>(seg*3, i) * pow(t, i-1);
               // }

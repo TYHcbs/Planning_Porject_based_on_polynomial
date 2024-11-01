@@ -153,7 +153,7 @@ void execCallback(const ros::TimerEvent &e) {
   case EXEC_TRAJ: {
     ros::Time time_now = ros::Time::now();
     double t_cur = (time_now - time_traj_start).toSec();
-    double t_replan = ros::Duration(1, 0).toSec();
+    double t_replan = ros::Duration(100000, 0).toSec();
     t_cur = min(time_duration, t_cur); // time_duration = _polyTime.sum(); in trajGen
 
     if (t_cur > time_duration - 1e-2) {
@@ -445,11 +445,11 @@ void trajPublish(MatrixXd polyCoeff, VectorXd time) {
         }
         
       // cout<<"[Debug] inside trajPublish , inside for loop, start calculate coeff_x/y/z"<< endl;
-      traj_msg.coef_x.push_back(polyCoeff(i, j*3+0) * pow(time(i), j));
-      traj_msg.coef_y.push_back(polyCoeff(i, j*3+1) *
+      traj_msg.coef_x.push_back(polyCoeff(i, j) * pow(time(i), j));
+      traj_msg.coef_y.push_back(polyCoeff(i, poly_number + j) *
                                 pow(time(i), j));
-      traj_msg.coef_z.push_back(polyCoeff(i, j*3+2) *
-                                pow(time(i), j)); // modifed
+      traj_msg.coef_z.push_back(polyCoeff(i, 2 * poly_number + j) *
+                                pow(time(i), j));
       // cout<<"[Debug] inside trajPublish for loop, assigning traj_msg.coef_x/y/z complited, i= "<<i<<"j= "<<j<< endl;
     }
     traj_msg.time.push_back(time(i));
@@ -501,8 +501,12 @@ void visTrajectory(MatrixXd polyCoeff, VectorXd time) {
 
   _traj_vis.color.a = 1.0;
   _traj_vis.color.r = 0.0;
-  _traj_vis.color.g = 0.5;
-  _traj_vis.color.b = 1.0;
+  _traj_vis.color.g = 128.0;
+  _traj_vis.color.b = 0.0;
+  // _traj_vis.color.a = 1.0;
+  // _traj_vis.color.r = 0.0;
+  // _traj_vis.color.g = 0.5;
+  // _traj_vis.color.b = 1.0;
 
   _traj_vis.points.clear();
   Vector3d pos;

@@ -29,7 +29,7 @@ Eigen::MatrixXd TrajectoryGeneratorWaypoint::PolyQPGeneration(
   int p_num1d = p_order + 1;     // the number of variables in each segment
   // cout << "[Debug] inside PolyQPGeneration, 111" << endl; // for test
   int m = Time.size();
-  // cout << "[Debug] inside PolyQPGeneration, 222" << endl; // for test
+  cout << "[Debug] m segments:" << m << endl; // for test
   MatrixXd PolyCoeff(m, 3 * p_num1d); //每行是一段polynomial，一行内，三个三个一组(x，y，z)，一共p_num1d组
 
   /**
@@ -75,7 +75,7 @@ Eigen::MatrixXd TrajectoryGeneratorWaypoint::PolyQPGeneration(
   Q_i.block(12,18,3,3) = 8640*pow(tm,2)*One_3x3;
   Q_i.block(12,15,3,3) = 2880*pow(tm,1)*One_3x3;
   Q_i.block(12,12,3,3) = 576*One_3x3;
-  cout<<"Q_i= "<<Q_i<<endl; // for test
+  // cout<<"Q_i= "<<Q_i<<endl; // for test
   // Q_i <<  705600*pow(Time(i),6)*I_3x3, 302400*pow(Time(i),5)*I_3x3, 100800*pow(Time(i),4)*I_3x3, 20160*pow(Time(i),3)*I_3x3,
   //         302400*pow(Time(i),5)*I_3x3, 129600*pow(Time(i),4)*I_3x3, 43200*pow(Time(i),3)*I_3x3, 8640*pow(Time(i),2)*I_3x3,
   //         100800*pow(Time(i),4)*I_3x3, 43200*pow(Time(i),3)*I_3x3, 14400*pow(Time(i),2)*I_3x3, 2880*pow(Time(i),1)*I_3x3,
@@ -106,11 +106,11 @@ Eigen::MatrixXd TrajectoryGeneratorWaypoint::PolyQPGeneration(
           // 210*pow(tm,4)*I_3x3, 120*pow(tm,3)*I_3x3, 60*pow(tm,2)*I_3x3, 24*pow(tm,1)*I_3x3, 6*pow(tm,0)*I_3x3, 0*I_3x3, 0*I_3x3, 0*I_3x3;
   // cout << "[Debug] inside polynomial trajectory, constructing A_Matrix" << endl; // for test
   A_Matrix.block(3*p_num1d*i, 3*p_num1d*i, 3*p_num1d, 3*p_num1d) = A_i; 
-  cout<< "A_i = " << A_i <<endl; // for test 
+  // cout<< "A_i = " << A_i <<endl; // for test 
   
   // cout << "[Debug] inside polynomial trajectory, constructing C_Matrix"<<"m:"<<m<<"i:"<<i << endl; // for test
   //Construct C_Matrix: //24mx12m+12
-  if(i>0 && i<m){
+  if(i>0){
     C_Matrix_Trans.block(24*i+0+ 0*3 +0, 12+ 3*(i-1) +0, 3, 3) = I_3x3; // d_{i,0}^{0},x/y/z
     C_Matrix_Trans.block(24*i+0+ 1*3 +0, 3*(m+7)+9*(i-1)+ 0*3 +0, 3, 3) = I_3x3; // d_{i,0}^{1},x/y/z
     C_Matrix_Trans.block(24*i+0+ 2*3 +0, 3*(m+7)+9*(i-1)+ 1*3 +0, 3, 3) = I_3x3; // d_{i,0}^{2},x/y/z
@@ -138,27 +138,27 @@ Eigen::MatrixXd TrajectoryGeneratorWaypoint::PolyQPGeneration(
   MatrixXd A_invTrans = A_inv.transpose(); // selfadd:matrix inverse note!
   // cout << "[Debug] inside polynomial trajectory, constructing R_Matrix" << endl; // for test
   MatrixXd R_Matrix = C_Matrix*A_invTrans*Q_Matrix*A_inv*C_Matrix_Trans;
-  cout<<"R_Matrix: "<<R_Matrix<<endl; // for test
+  // cout<<"R_Matrix: "<<R_Matrix<<endl; // for test
 
   //dP∗=− RPP^−1 * RFP^T *dF
   // cout << "[Debug] inside polynomial trajectory, constructing dF" << endl; // for test
   MatrixXd R_fp = R_Matrix.block(0,3*m+21,3*m+21,9*m-9);
   MatrixXd R_pp = R_Matrix.block(3*m+21,3*m+21,9*m-9,9*m-9);
-  cout<<"R_pp: "<<R_pp<<endl; // for test
+  // cout<<"R_pp: "<<R_pp<<endl; // for test
 
   MatrixXd Rpp_inv(R_pp.rows(), R_pp.cols());
   Eigen::FullPivLU<Eigen::MatrixXd> lu_2(R_pp);
   Rpp_inv = lu_2.inverse();
   // MatrixXd Rpp_inv = R_pp.inverse();
-  
+
   MatrixXd Rfp_trans = R_fp.transpose();
-  cout<<"Rpp_inv:"<<Rpp_inv<<endl; // for test
-  cout<<"Rfp_trans: "<<Rfp_trans<<endl; // for test
+  // cout<<"Rpp_inv: "<<Rpp_inv<<endl; // for test
+  // cout<<"Rfp_trans: "<<Rfp_trans<<endl; // for test
 
   VectorXd dF = VectorXd::Zero(3*(m+7));
   // fill in dF 
   dF.block(0,0,3,1) = Path.row(0).transpose(); //Position0
-  dF.block(3*(m+3),0,3,1) = Path.row(m-1).transpose(); //PositionM
+  dF.block(3*(m+3),0,3,1) = Path.row(m).transpose(); //PositionM
   for(int j =1;j<m;j++){
     dF.block(12+3*(j-1),0,3,1) =Path.row(j).transpose(); //position condition(except p0 and pM)
   }
@@ -170,13 +170,46 @@ Eigen::MatrixXd TrajectoryGeneratorWaypoint::PolyQPGeneration(
   // cout << "[Debug] inside polynomial trajectory, constructing dPF" << endl; // for test
   VectorXd dPF(12*m+12); 
   dPF << dF,dP_star;
-  cout<<"dPF:"<<dPF<<endl; // for test
+  // cout<<"dPF:"<<dPF<<endl; // for test
+
+  VectorXd D;
+  D = C_Matrix_Trans*dPF;
+  cout<<"D_Matrix = "<<D<<endl;
+
   // cout << "[Debug] inside polynomial trajectory, constructing PolyCoeff" << endl; // for test
   PolyCoeff = A_inv*C_Matrix_Trans*dPF;
-  cout<<"Polycoeff before resize:"<<PolyCoeff<<endl; // for test
-  PolyCoeff.resize(m, 3 * p_num1d);
-  cout<<"Polycoeff:"<<PolyCoeff<<endl; // for test
-  return PolyCoeff;
+  // cout<<"Polycoeff  before resize:"<<PolyCoeff<<endl; // for test
+  // PolyCoeff.resize(m, 3 * p_num1d);
+  // MatrixXd PolyCoeff_resize = MatrixXd::Zero(3, 3);
+  // Map<MatrixXd, RowMajor> row_major(PolyCoeff.data(), PolyCoeff.rows(), PolyCoeff.cols());
+  // PolyCoeff.conservativeResize(m, 3 * p_num1d);
+  VectorXd D_2;
+  D_2 = A_Matrix*PolyCoeff;
+  cout<<"D_2-D = "<<D_2-D<<endl;
+
+  // Create new matrix with desired size
+  MatrixXd PolyCoeff_resized(m, 3 * p_num1d);
+
+  // Copy data in row-major order
+  // for(int s = 0; s <  m; ++s) {
+  //   for(int k = 0; k < 3 * p_num1d; ++k) { // modified: std::min(PolyCoeff.cols(), 3 * p_num1d)
+  //     try{
+  //       PolyCoeff_resized(s,k) = PolyCoeff(s*3 * p_num1d+k);
+  //     }catch (const std::exception& e) {
+  //     cout<<"resize failed.. i,j= "<< s<<" "<<k<<endl;
+  //     }
+  //   } 
+  // }
+  for(int s = 0; s < m; s++) {
+    for(int dim = 0; dim < 3; dim++) {
+        for(int j = 0; j < p_num1d; j++) {
+          cout<<"s,j,dim= "<<s<<j<<dim<<endl;
+            PolyCoeff_resized(s, dim * p_num1d + j) = PolyCoeff(3 * s * p_num1d + j * 3 + dim);
+        }
+    }
+  }
+  cout<<"Polycoeff:"<<PolyCoeff_resized<<endl; // for test
+  return PolyCoeff_resized;
 }
 
 double TrajectoryGeneratorWaypoint::getObjective() {
@@ -187,12 +220,12 @@ double TrajectoryGeneratorWaypoint::getObjective() {
 
 Vector3d TrajectoryGeneratorWaypoint::getPosPoly(MatrixXd polyCoeff, int k,
                                                  double t){
+  
   Vector3d ret;
   int _poly_num1D = (int)polyCoeff.cols() / 3;
   for (int dim = 0; dim < 3; dim++) {
     VectorXd coeff = (polyCoeff.row(k)).segment(dim * _poly_num1D, _poly_num1D);
     VectorXd time = VectorXd::Zero(_poly_num1D);
-
     for (int j = 0; j < _poly_num1D; j++){
         if (j == 0){
           time(j) = 1.0;
@@ -200,9 +233,10 @@ Vector3d TrajectoryGeneratorWaypoint::getPosPoly(MatrixXd polyCoeff, int k,
         else{
           time(j) = pow(t, j); //selfadd:[1, t, t^2, t^3, ...]
         }
-      ret(dim) = coeff.dot(time); //selfadd: 使用点积计算多项式在时间 t 的值。这等价于计算 a0 + a1*t + a2*t^2 + ...
-      // cout << "dim:" << dim << " coeff:" << coeff << endl;
     }
+    ret(dim) = coeff.dot(time); //selfadd: 使用点积计算多项式在时间 t 的值。这等价于计算 a0 + a1*t + a2*t^2 + ...
+      // cout << "dim:" << dim << " coeff:" << coeff << endl;
+    
   }
   return ret;
 }
@@ -234,7 +268,6 @@ Vector3d TrajectoryGeneratorWaypoint::getAccPoly(MatrixXd polyCoeff, int k,
   for (int dim = 0; dim < 3; dim++) {
     VectorXd coeff = (polyCoeff.row(k)).segment(dim * _poly_num1D, _poly_num1D);
     VectorXd time = VectorXd::Zero(_poly_num1D);
-
     for (int j = 0; j < _poly_num1D; j++){
       if (j == 0 || j == 1){
         time(j) = 0.0;

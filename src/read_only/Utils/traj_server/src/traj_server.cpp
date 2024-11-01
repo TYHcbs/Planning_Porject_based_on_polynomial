@@ -248,7 +248,9 @@ public:
                 }
 
                 shift += (order + 1);
+            
             }
+            cout<<"_coeff[_DIM_x]= "<<_coef[_DIM_x]<<endl;
         }
         else if (traj.action == quadrotor_msgs::PolynomialTrajectory::ACTION_ABORT) 
         {
@@ -259,9 +261,18 @@ public:
         else if (traj.action == quadrotor_msgs::PolynomialTrajectory::ACTION_WARN_IMPOSSIBLE)
         {
             state = HOVER;
-            _traj_flag = quadrotor_msgs::PositionCommand::TRAJECTORY_STATUS_IMPOSSIBLE;
+            _traj_flag = quadrotor_msgs::PositionCommand::TRAJECTORY_STATUS_IMPOSSIBLE; 
         }
     }
+    // selfadd:
+    //     uint8 TRAJECTORY_STATUS_EMPTY = 0
+    // uint8 TRAJECTORY_STATUS_READY = 1
+    // uint8 TRAJECTORY_STATUS_COMPLETED = 3
+    // uint8 TRAJECTROY_STATUS_ABORT = 4
+    // uint8 TRAJECTORY_STATUS_ILLEGAL_START = 5
+    // uint8 TRAJECTORY_STATUS_ILLEGAL_FINAL = 6
+    // uint8 TRAJECTORY_STATUS_IMPOSSIBLE = 7
+    
 
     void pubPositionCommand()
     {
@@ -303,11 +314,42 @@ public:
 
             // #3. calculate the desired states
             //ROS_WARN("[SERVER] the time : %.3lf\n, n = %d, m = %d", t, _n_order, _n_segment);
+            int current_segment = 0;
+            // double segment_t = 0.0;
+            // double accumulated_time = 0;
+            // for (int idx = 0; idx < _n_segment; ++idx) //modified
+            // {
+            //     accumulated_time += _time[idx]; 
+            //     if (t <= accumulated_time)
+            //     {
+            //         // 找到当前段
+            //         double segment_start = accumulated_time - _time[idx];
+            //         // 计算在当前段内的相对时间并归一化
+            //         segment_t = (t - segment_start) / _time[idx];
+            //         current_segment = idx;
+            //         break;
+            //     }
+            // }
+                // ROS_INFO("now constructing cmd at %d segment, time(0~1): %.3f", current_segment, segment_t);
+                // if(segment_t>0.95){
+                //     ROS_INFO("***************************************************************");
+                //     ROS_INFO("***************************************************************");
+                //     ROS_INFO("***************************************************************");
+                //     ROS_INFO("***************************************************************");
+                //     ROS_INFO("***************************************************************");
+                //     ROS_INFO("***************************************************************");
+                //     ROS_INFO("***************************************************************");
+                //     ROS_INFO("***************************************************************");
+                //     ROS_INFO("***************************************************************");
+                // }
+                
+                // t = segment_t;
             for (int idx = 0; idx < _n_segment; ++idx)
+
             {
                 if (t > _time[idx] && idx + 1 < _n_segment)
                 {
-                    t -= _time[idx];
+                t -= _time[idx];
                 }
                 else
                 {   
@@ -322,32 +364,35 @@ public:
                     _cmd.acceleration.x = 0.0;
                     _cmd.acceleration.y = 0.0;
                     _cmd.acceleration.z = 0.0;
+                     
+                    current_segment = idx;
 
-                    int cur_order = _order[idx];
+                    int cur_order = _order[current_segment];
                     int cur_poly_num = cur_order + 1;
 
-                    for(int i = 0; i < cur_poly_num; i ++)
+                    for(int i = 0; i < cur_poly_num; i ++) //index: which segment of traj, i:paramter for which degree, t: 
                     {
-                        _cmd.position.x += _coef[_DIM_x].col(idx)(i) * pow(t, i);
-                        _cmd.position.y += _coef[_DIM_y].col(idx)(i) * pow(t, i);
-                        _cmd.position.z += _coef[_DIM_z].col(idx)(i) * pow(t, i);
+                        _cmd.position.x += _coef[_DIM_x].col(current_segment)(i) * pow(t, i); // modified orin idx->current_segment
+                        _cmd.position.y += _coef[_DIM_y].col(current_segment)(i) * pow(t, i);
+                        _cmd.position.z += _coef[_DIM_z].col(current_segment)(i) * pow(t, i);
+                        // cout<<"current_segment= "<<current_segment<<", t= "<<t<<"_cmd.position point: "<<_cmd.position.x<<","<<_cmd.position.y<<","<<_cmd.position.z<<endl;
 
                         if (i < (cur_poly_num - 1))
                         {
-                            _cmd.velocity.x += (i + 1) * _coef[_DIM_x].col(idx)(i + 1) * pow(t, i) / _time[idx];
+                            _cmd.velocity.x += (i + 1) * _coef[_DIM_x].col(current_segment)(i + 1) * pow(t, i) / _time[current_segment];
 
-                            _cmd.velocity.y += (i + 1) * _coef[_DIM_y].col(idx)(i + 1) * pow(t, i) / _time[idx];
+                            _cmd.velocity.y += (i + 1) * _coef[_DIM_y].col(current_segment)(i + 1) * pow(t, i) / _time[current_segment];
 
-                            _cmd.velocity.z += (i + 1) * _coef[_DIM_z].col(idx)(i + 1) * pow(t, i) / _time[idx];
+                            _cmd.velocity.z += (i + 1) * _coef[_DIM_z].col(current_segment)(i + 1) * pow(t, i) / _time[current_segment];
                         }
 
                         if (i < (cur_poly_num - 2))
                         {
-                            _cmd.acceleration.x += (i + 2) * (i + 1) * _coef[_DIM_x].col(idx)(i + 2) * pow(t, i) / _time[idx] / _time[idx];
+                            _cmd.acceleration.x += (i + 2) * (i + 1) * _coef[_DIM_x].col(current_segment)(i + 2) * pow(t, i) / _time[current_segment] / _time[current_segment];
 
-                            _cmd.acceleration.y += (i + 2) * (i + 1) * _coef[_DIM_y].col(idx)(i + 2) * pow(t, i) / _time[idx] / _time[idx];
+                            _cmd.acceleration.y += (i + 2) * (i + 1) * _coef[_DIM_y].col(current_segment)(i + 2) * pow(t, i) / _time[current_segment] / _time[current_segment];
 
-                            _cmd.acceleration.z += (i + 2) * (i + 1) * _coef[_DIM_z].col(idx)(i + 2) * pow(t, i) / _time[idx] / _time[idx];
+                            _cmd.acceleration.z += (i + 2) * (i + 1) * _coef[_DIM_z].col(current_segment)(i + 2) * pow(t, i) / _time[current_segment] / _time[current_segment];
                         }
 
                     }
@@ -375,11 +420,13 @@ public:
                     //ROS_WARN("%.8f %.8f %.8f %.8f",_cmd.velocity.x,_cmd.velocity.y,_cmd.yaw,t);
 
                     break;
-                } 
-            }
+                }
+            } 
+            
         }
         // #4. just publish
         _cmd_pub.publish(_cmd);
+        cout<<"_cmd_pub.publish(_cmd); done"<<endl;
 
         _vis_cmd.header = _cmd.header;
         _vis_cmd.pose.position.x = _cmd.position.x;
