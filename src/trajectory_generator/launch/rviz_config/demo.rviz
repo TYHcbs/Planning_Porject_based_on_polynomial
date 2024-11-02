@@ -111,7 +111,7 @@ Visualization Manager:
       Name: Trajectory
     - Class: rviz/Group
       Displays:
-        - Alpha: 0.100000001
+        - Alpha: 1
           Autocompute Intensity Bounds: true
           Autocompute Value Bounds:
             Max Value: 10
@@ -134,7 +134,7 @@ Visualization Manager:
           Queue Size: 10
           Selectable: true
           Size (Pixels): 3
-          Size (m): 0.100000001
+          Size (m): 0.100000003
           Style: Flat Squares
           Topic: /pcl_render_node/global_map_vis
           Unreliable: false

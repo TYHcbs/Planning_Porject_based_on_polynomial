@@ -210,7 +210,7 @@ void rcvPointCloudCallBack(const sensor_msgs::PointCloud2 &pointcloud_map) {
   pcl::PointCloud<pcl::PointXYZ> cloud_vis;
   sensor_msgs::PointCloud2 map_vis;
 
-  pcl::fromROSMsg(pointcloud_map, cloud);
+  pcl::fromROSMsg(pointcloud_map, cloud); // how??
 
   if ((int)cloud.points.size() == 0)
     return;
@@ -301,7 +301,7 @@ void trajOptimization(Eigen::MatrixXd path) {
     _polyCoeff = _trajGene->PolyQPGeneration(_dev_order, path, vel, acc, _polyTime); //selfadd:   int m = Time.size(); MatrixXd PolyCoeff(m, 3 * p_num1d);
     // cout << "[Debug] Polynomial generation completed" << endl; // for test
   } catch (const std::exception& e) {
-    // cout << "[Error] Exception in PolyQPGeneration: " << e.what() << endl; //for test
+    cout << "[Error] Exception in PolyQPGeneration: " << e.what() << endl; //for test
     return;
   }
   
@@ -346,27 +346,32 @@ void trajOptimization(Eigen::MatrixXd path) {
     new_path.row(unsafe_segment + 1) = mid_point;
     new_path.bottomRows(path.rows() - (unsafe_segment + 1)) = 
         path.bottomRows(path.rows() - (unsafe_segment + 1));
-    repath = new_path; //!!!
+    cout<<"old path size: "<<path.rows()<<endl; // for test
+    path = new_path; //!!!
+    cout<<"new path size: "<<new_path.rows()<<endl; // for test
     
     // Update time allocation
     VectorXd new_time(_polyTime.size() + 1);
     new_time.head(unsafe_segment) = _polyTime.head(unsafe_segment);
     // Split the time of unsafe segment into two parts
-    new_time(unsafe_segment) = _polyTime(unsafe_segment) / 2.0;
-    new_time(unsafe_segment + 1) = _polyTime(unsafe_segment) / 2.0;
+    new_time(unsafe_segment) = _polyTime(unsafe_segment) / 1.5;
+    new_time(unsafe_segment + 1) = _polyTime(unsafe_segment) / 1.5;
     new_time.tail(_polyTime.size() - unsafe_segment - 1) = 
         _polyTime.tail(_polyTime.size() - unsafe_segment - 1);
+    cout<<"old time size: "<<_polyTime.size()<<endl; // for test
     _polyTime = new_time;
+    cout<<"new time size: "<<new_time.size()<<endl; // for test
+    
     
     // Reoptimize trajectory with new waypoints
     // _polyCoeff = getPolyCoeff(path, _polyTime);
-    _trajGene->PolyQPGeneration(_dev_order, repath, vel, acc, _polyTime);
+    _trajGene->PolyQPGeneration(_dev_order, path, vel, acc, _polyTime);
 
     count=count+1;
     cout<<"count: "<<count<<endl; // for tests
     
     // Check safety of new trajectory
-    unsafe_segment = _astar_path_finder->safeCheck(_polyCoeff, _polyTime);
+    unsafe_segment = _astar_path_finder->safeCheck(_polyCoeff, new_time);
 
   }
   // std::cout<<"***inside trajOptimization, after reoptimize***"<<"count="<< count << std::endl; // for test

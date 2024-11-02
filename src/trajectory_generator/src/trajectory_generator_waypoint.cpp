@@ -30,6 +30,7 @@ Eigen::MatrixXd TrajectoryGeneratorWaypoint::PolyQPGeneration(
   // cout << "[Debug] inside PolyQPGeneration, 111" << endl; // for test
   int m = Time.size();
   cout << "[Debug] m segments:" << m << endl; // for test
+  cout << "[Debug] path size:" << Path.rows() << endl; // for test
   MatrixXd PolyCoeff(m, 3 * p_num1d); //每行是一段polynomial，一行内，三个三个一组(x，y，z)，一共p_num1d组
 
   /**
@@ -149,15 +150,15 @@ Eigen::MatrixXd TrajectoryGeneratorWaypoint::PolyQPGeneration(
   // cout<<"A_inv = "<<A_inv<<endl; // for test
   // cout << "[Debug] inside polynomial trajectory, constructing A_invTrans" << endl; // for test
   MatrixXd A_invTrans = A_inv.transpose(); // selfadd:matrix inverse note!
-  // cout << "[Debug] inside polynomial trajectory, constructing R_Matrix" << endl; // for test
+  cout << "[Debug] inside polynomial trajectory, constructing R_Matrix" << endl; // for test
   MatrixXd R_Matrix = C_Matrix*A_invTrans*Q_Matrix*A_inv*C_Matrix_Trans;
-  // cout<<"R_Matrix: "<<R_Matrix<<endl; // for test
+  cout<<"R_Matrix: done"<<endl; // for test
 
   //dP∗=− RPP^−1 * RFP^T *dF
-  // cout << "[Debug] inside polynomial trajectory, constructing dF" << endl; // for test
+  cout << "[Debug] inside polynomial trajectory, constructing dF" << endl; // for test
   MatrixXd R_fp = R_Matrix.block(0,3*m+21,3*m+21,9*m-9);
   MatrixXd R_pp = R_Matrix.block(3*m+21,3*m+21,9*m-9,9*m-9);
-  // cout<<"R_pp: "<<R_pp<<endl; // for test
+  cout<<"R_pp: done"<<endl; // for test
 
   MatrixXd Rpp_inv(R_pp.rows(), R_pp.cols());
   Eigen::FullPivLU<Eigen::MatrixXd> lu_2(R_pp);
@@ -165,20 +166,25 @@ Eigen::MatrixXd TrajectoryGeneratorWaypoint::PolyQPGeneration(
   // MatrixXd Rpp_inv = R_pp.inverse();
 
   MatrixXd Rfp_trans = R_fp.transpose();
-  // cout<<"Rpp_inv: "<<Rpp_inv<<endl; // for test
-  // cout<<"Rfp_trans: "<<Rfp_trans<<endl; // for test
+  cout<<"Rpp_inv: done "<<endl; // for test
+  cout<<"Rfp_trans: done"<<endl; // for test
 
   VectorXd dF = VectorXd::Zero(3*(m+7));
+  cout<<"dF = VectorXd::Zero(3*(m+7));"<<endl; //for test
   // fill in dF 
   dF.block(0,0,3,1) = Path.row(0).transpose(); //Position0
+  cout<<"dF = Position0"<<endl; //for test
+  cout<<"3*(m+3)= "<<3*(m+3)<<"m"<<m<<endl; //for test
   dF.block(3*(m+3),0,3,1) = Path.row(m).transpose(); //PositionM
+  cout<<"dF = PositionM"<<endl; //for test
   for(int j =1;j<m;j++){
+    cout<<"j= "<<j<<endl; //for test
     dF.block(12+3*(j-1),0,3,1) =Path.row(j).transpose(); //position condition(except p0 and pM)
   }
   cout<<"dF: "<<dF; // for test
   // cout << "[Debug] inside polynomial trajectory, constructing dP_star" << endl; // for test
   VectorXd dP_star = -1*Rpp_inv*Rfp_trans*dF;
-  cout<<"dP_star:"<<dP_star<<endl; // for test
+  cout<<"dP_star: done"<<endl; // for test
   //P = A^-1*C^T*[dp,df]^T
   // cout << "[Debug] inside polynomial trajectory, constructing dPF" << endl; // for test
   VectorXd dPF(12*m+12); 
@@ -187,7 +193,7 @@ Eigen::MatrixXd TrajectoryGeneratorWaypoint::PolyQPGeneration(
 
   VectorXd D;
   D = C_Matrix_Trans*dPF;
-  cout<<"D_Matrix = "<<D<<endl;
+  cout<<"D_Matrix = done"<<endl;
 
   // cout << "[Debug] inside polynomial trajectory, constructing PolyCoeff" << endl; // for test
   PolyCoeff = A_inv*C_Matrix_Trans*dPF;
@@ -259,15 +265,15 @@ std::cout << "A_Matrix 的条件数：" <<
     A_Matrix.jacobiSvd().singularValues()(A_Matrix.jacobiSvd().singularValues().size()-1) 
     << "\n";
 
-// 检查Q_Matrix的结构
-std::cout << "Q_Matrix 非零元素的位置：\n";
-for(int i = 0; i < Q_Matrix.rows(); i++) {
-    for(int j = 0; j < Q_Matrix.cols(); j++) {
-        if(abs(Q_Matrix(i,j)) > 1e-10) {
-            std::cout << "(" << i << "," << j << "): " << Q_Matrix(i,j) << "\n";
-        }
-    }
-}
+// // 检查Q_Matrix的结构
+// std::cout << "Q_Matrix 非零元素的位置：\n";
+// for(int i = 0; i < Q_Matrix.rows(); i++) {
+//     for(int j = 0; j < Q_Matrix.cols(); j++) {
+//         if(abs(Q_Matrix(i,j)) > 1e-10) {
+//             std::cout << "(" << i << "," << j << "): " << Q_Matrix(i,j) << "\n";
+//         }
+//     }
+// }
 
 // 检查R_Matrix的结构
 std::cout << "R_fp的维度: " << R_fp.rows() << "x" << R_fp.cols() << "\n";

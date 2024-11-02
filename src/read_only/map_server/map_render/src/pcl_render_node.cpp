@@ -83,6 +83,7 @@ vector<float> _pointRadiusSquaredDistance;
 pcl::PointCloud<pcl::PointXYZ> cloud_input;
 void rcvGlobalPointCloudCallBack(const sensor_msgs::PointCloud2 &pointcloud_map)
 {
+    ROS_WARN("In rcvGlobalPointCloudCallBack Global Pointcloud received..");
     if (has_global_map)
         return;
 
@@ -104,6 +105,7 @@ void rcvGlobalPointCloudCallBack(const sensor_msgs::PointCloud2 &pointcloud_map)
         pt.y = cor_round(1);
         pt.z = cor_round(2);
         cloud_vis.points.push_back(pt);
+        cout<<"pt = "<<pt<<endl;
     }
 
     cloud_vis.width    = cloud_vis.points.size();
