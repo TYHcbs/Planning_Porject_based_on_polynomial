@@ -41,3 +41,6 @@ src/.vscode
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# ROS bag
+.bag

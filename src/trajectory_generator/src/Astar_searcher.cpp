@@ -478,13 +478,13 @@ int AstarPathFinder::safeCheck(MatrixXd polyCoeff, VectorXd time) {
           // Evaluate position polynomial //selfadd:  MatrixXd PolyCoeff(m, 3 * p_num1d);
           int p_num1d = polyCoeff.cols()/3;
           for(int degree = 0; degree < p_num1d; degree++) {
-            cout<<"in safecheck, seg, degree= "<<seg<<"/"<<segments<<","<<degree<<"/"<<p_num1d<<endl; // for test
+            // cout<<"in safecheck, seg, degree= "<<seg<<"/"<<segments<<","<<degree<<"/"<<p_num1d<<endl; // for test
               Vector3d polyCoeff_trans;
               polyCoeff_trans(0) = polyCoeff(seg,degree);
               polyCoeff_trans(1) = polyCoeff(seg,p_num1d+degree);
               polyCoeff_trans(2) = polyCoeff(seg,2*p_num1d+degree);
               pos += polyCoeff_trans * pow(t, degree);// but pos 是列向量？
-              cout<<"pos= "<<pos<<endl;
+              // cout<<"pos= "<<pos<<endl;
               // if(i > 0) {
               //     vel += i * polyCoeff.block<3,1>(seg*3, i) * pow(t, i-1);
               // }

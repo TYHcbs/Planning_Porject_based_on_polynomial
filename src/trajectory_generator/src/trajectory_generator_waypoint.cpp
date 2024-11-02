@@ -43,6 +43,7 @@ Eigen::MatrixXd TrajectoryGeneratorWaypoint::PolyQPGeneration(
   Matrix3d I_3x3 = Matrix3d::Identity();
   MatrixXd I_12x12 = MatrixXd::Identity(12,12);
   MatrixXd One_3x3 = MatrixXd::Ones(3,3);
+  double lambda = 1e-8;  // 正则化参数
   // cout << "[Debug] inside PolyQPGeneration, 444" << endl; // for test
   MatrixXd Q_Matrix = MatrixXd::Zero(3*p_num1d*m,3*p_num1d*m);// define size? //24mx24m
   MatrixXd A_Matrix = MatrixXd::Zero(3*p_num1d*m,3*p_num1d*m); //24mx24m
@@ -56,25 +57,37 @@ Eigen::MatrixXd TrajectoryGeneratorWaypoint::PolyQPGeneration(
   // cout << "[Debug] inside polynomial trajectory, constructing Qi" << endl; // for test
   //Construct Qi:
   MatrixXd Q_i = MatrixXd::Zero(3 * p_num1d, 3 * p_num1d);
-  Q_i.block(21,21,3,3) = 705600*pow(tm,6)*One_3x3;
-  Q_i.block(21,18,3,3) = 302400*pow(tm,5)*One_3x3;
-  Q_i.block(21,15,3,3) = 100800*pow(tm,4)*One_3x3;
-  Q_i.block(21,12,3,3) = 20160*pow(tm,3)*One_3x3;
+  Q_i.block(21,21,3,3) = 705600*pow(tm,6)*One_3x3/pow(tm,6);
+  Q_i.block(21,18,3,3) = 302400*pow(tm,5)*One_3x3/pow(tm,5);
+  Q_i.block(21,15,3,3) = 100800*pow(tm,4)*One_3x3/pow(tm,4);
+  Q_i.block(21,12,3,3) = 20160*pow(tm,3)*One_3x3/pow(tm,3);
 
-  Q_i.block(18,21,3,3) = 302400*pow(tm,5)*One_3x3;
-  Q_i.block(18,18,3,3) = 129600*pow(tm,4)*One_3x3;
-  Q_i.block(18,15,3,3) = 43200*pow(tm,3)*One_3x3;
-  Q_i.block(18,12,3,3) = 8640*pow(tm,2)*One_3x3;
+  Q_i.block(18,21,3,3) = 302400*pow(tm,5)*One_3x3/pow(tm,5);
+  Q_i.block(18,18,3,3) = 129600*pow(tm,4)*One_3x3/pow(tm,4);
+  Q_i.block(18,15,3,3) = 43200*pow(tm,3)*One_3x3/pow(tm,3);
+  Q_i.block(18,12,3,3) = 8640*pow(tm,2)*One_3x3/pow(tm,2);
 
-  Q_i.block(15,21,3,3) = 100800*pow(tm,4)*One_3x3;
-  Q_i.block(15,18,3,3) = 43200*pow(tm,3)*One_3x3;
-  Q_i.block(15,15,3,3) = 14400*pow(tm,2)*One_3x3;
-  Q_i.block(15,12,3,3) = 2880*pow(tm,1)*One_3x3;
+  Q_i.block(15,21,3,3) = 100800*pow(tm,4)*One_3x3/pow(tm,4);
+  Q_i.block(15,18,3,3) = 43200*pow(tm,3)*One_3x3/pow(tm,3);
+  Q_i.block(15,15,3,3) = 14400*pow(tm,2)*One_3x3/pow(tm,2);
+  Q_i.block(15,12,3,3) = 2880*pow(tm,1)*One_3x3/pow(tm,1);
 
-  Q_i.block(12,21,3,3) = 20160*pow(tm,3)*One_3x3;
-  Q_i.block(12,18,3,3) = 8640*pow(tm,2)*One_3x3;
-  Q_i.block(12,15,3,3) = 2880*pow(tm,1)*One_3x3;
+  Q_i.block(12,21,3,3) = 20160*pow(tm,3)*One_3x3/pow(tm,3);
+  Q_i.block(12,18,3,3) = 8640*pow(tm,2)*One_3x3/pow(tm,2);
+  Q_i.block(12,15,3,3) = 2880*pow(tm,1)*One_3x3/pow(tm,1);
   Q_i.block(12,12,3,3) = 576*One_3x3;
+
+  // 添加正则化
+  // Q_i.diagonal().array() += lambda;
+
+  // 或者对高阶项使用更大的正则化系数
+  for(int i = 0; i < p_num1d; i++) {
+      double reg = lambda * pow(10, i);  // 高阶项用更大的正则化系数
+      Q_i.block(3*i,3*i,3,3).diagonal().array() += reg;
+  }
+
+
+
   // cout<<"Q_i= "<<Q_i<<endl; // for test
   // Q_i <<  705600*pow(Time(i),6)*I_3x3, 302400*pow(Time(i),5)*I_3x3, 100800*pow(Time(i),4)*I_3x3, 20160*pow(Time(i),3)*I_3x3,
   //         302400*pow(Time(i),5)*I_3x3, 129600*pow(Time(i),4)*I_3x3, 43200*pow(Time(i),3)*I_3x3, 8640*pow(Time(i),2)*I_3x3,
@@ -183,9 +196,11 @@ Eigen::MatrixXd TrajectoryGeneratorWaypoint::PolyQPGeneration(
   // MatrixXd PolyCoeff_resize = MatrixXd::Zero(3, 3);
   // Map<MatrixXd, RowMajor> row_major(PolyCoeff.data(), PolyCoeff.rows(), PolyCoeff.cols());
   // PolyCoeff.conservativeResize(m, 3 * p_num1d);
-  VectorXd D_2;
-  D_2 = A_Matrix*PolyCoeff;
-  cout<<"D_2-D = "<<D_2-D<<endl;
+
+  //check continuous
+  // VectorXd D_2;
+  // D_2 = A_Matrix*PolyCoeff;
+  // cout<<"D_2-D = "<<D_2-D<<endl;
 
   // Create new matrix with desired size
   MatrixXd PolyCoeff_resized(m, 3 * p_num1d);
@@ -203,12 +218,66 @@ Eigen::MatrixXd TrajectoryGeneratorWaypoint::PolyQPGeneration(
   for(int s = 0; s < m; s++) {
     for(int dim = 0; dim < 3; dim++) {
         for(int j = 0; j < p_num1d; j++) {
-          cout<<"s,j,dim= "<<s<<j<<dim<<endl;
+          // cout<<"s,j,dim= "<<s<<j<<dim<<endl;
             PolyCoeff_resized(s, dim * p_num1d + j) = PolyCoeff(3 * s * p_num1d + j * 3 + dim);
         }
     }
   }
   cout<<"Polycoeff:"<<PolyCoeff_resized<<endl; // for test
+
+  // 在得到PolyCoeff_resized后添加 for test
+  for(int s = 0; s < m; s++) {
+      std::cout << "段 " << s << " 的系数：\n";
+      for(int dim = 0; dim < 3; dim++) {
+          std::cout << "维度 " << dim << ": ";
+          for(int j = 0; j < p_num1d; j++) {
+              std::cout << PolyCoeff_resized(s, dim * p_num1d + j) << " ";
+          }
+          std::cout << "\n";
+      }
+  }
+
+ // testing continuousty
+  for(int i = 0; i < m-1; i++) {
+    // 检查段i结束点和段i+1起始点的连续性
+    Vector3d pos_end = getPosPoly(PolyCoeff_resized, i, Time(i));
+    Vector3d pos_start = getPosPoly(PolyCoeff_resized, i+1, 0);
+    Vector3d vel_end = getVelPoly(PolyCoeff_resized, i, Time(i));
+    Vector3d vel_start = getVelPoly(PolyCoeff_resized, i+1, 0);
+    Vector3d acc_end = getAccPoly(PolyCoeff_resized, i, Time(i));
+    Vector3d acc_start = getAccPoly(PolyCoeff_resized, i+1, 0);
+    
+    std::cout << "段 " << i << " 和 " << i+1 << " 的连接点：\n";
+    std::cout << "位置差： " << (pos_end - pos_start).norm() << "\n";
+    std::cout << "速度差： " << (vel_end - vel_start).norm() << "\n";
+    std::cout << "加速度差： " << (acc_end - acc_start).norm() << "\n";
+}
+
+// 检查A_Matrix的结构
+std::cout << "A_Matrix 的条件数：" << 
+    A_Matrix.jacobiSvd().singularValues()(0) / 
+    A_Matrix.jacobiSvd().singularValues()(A_Matrix.jacobiSvd().singularValues().size()-1) 
+    << "\n";
+
+// 检查Q_Matrix的结构
+std::cout << "Q_Matrix 非零元素的位置：\n";
+for(int i = 0; i < Q_Matrix.rows(); i++) {
+    for(int j = 0; j < Q_Matrix.cols(); j++) {
+        if(abs(Q_Matrix(i,j)) > 1e-10) {
+            std::cout << "(" << i << "," << j << "): " << Q_Matrix(i,j) << "\n";
+        }
+    }
+}
+
+// 检查R_Matrix的结构
+std::cout << "R_fp的维度: " << R_fp.rows() << "x" << R_fp.cols() << "\n";
+std::cout << "R_pp的维度: " << R_pp.rows() << "x" << R_pp.cols() << "\n";
+std::cout << "R_pp的条件数: " << 
+    R_pp.jacobiSvd().singularValues()(0) / 
+    R_pp.jacobiSvd().singularValues()(R_pp.jacobiSvd().singularValues().size()-1) 
+    << "\n";
+
+
   return PolyCoeff_resized;
 }
 

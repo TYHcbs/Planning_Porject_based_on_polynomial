@@ -426,7 +426,7 @@ public:
         }
         // #4. just publish
         _cmd_pub.publish(_cmd);
-        cout<<"_cmd_pub.publish(_cmd); done"<<endl;
+        // cout<<"_cmd_pub.publish(_cmd); done"<<endl; // for test
 
         _vis_cmd.header = _cmd.header;
         _vis_cmd.pose.position.x = _cmd.position.x;
