@@ -43,4 +43,4 @@ ehthumbs.db
 Thumbs.db
 
 # ROS bag
-.bag
+*.bag
