@@ -1,0 +1,53 @@
+Traceback (most recent call last):
+  File "/home/tyh/anaconda3/lib/python3.11/site-packages/em.py", line 6673, in <module>
+    if __name__ == '__main__': main()
+                               ^^^^^^
+  File "/home/tyh/anaconda3/lib/python3.11/site-packages/em.py", line 6670, in main
+    exitCode = invoke(sys.argv[1:], executable=sys.argv[0], errors=None)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tyh/anaconda3/lib/python3.11/site-packages/em.py", line 6624, in invoke
+    interp = Interpreter(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tyh/anaconda3/lib/python3.11/site-packages/em.py", line 4627, in __init__
+    self._initialize(*args)
+  File "/home/tyh/anaconda3/lib/python3.11/site-packages/em.py", line 4733, in _initialize
+    self.install()
+  File "/home/tyh/anaconda3/lib/python3.11/site-packages/em.py", line 4783, in install
+    return self.config.install()
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tyh/anaconda3/lib/python3.11/site-packages/em.py", line 1413, in install
+    _installPathFinder(self.moduleFinderIndex)
+  File "/home/tyh/anaconda3/lib/python3.11/site-packages/em.py", line 428, in _installPathFinder
+    import importlib.abc
+  File "/home/tyh/anaconda3/lib/python3.11/importlib/abc.py", line 19, in <module>
+    from .resources.abc import ResourceReader, Traversable, TraversableResources
+  File "/home/tyh/anaconda3/lib/python3.11/importlib/resources/__init__.py", line 3, in <module>
+    from ._common import (
+  File "/home/tyh/anaconda3/lib/python3.11/importlib/resources/_common.py", line 2, in <module>
+    import pathlib
+  File "/home/tyh/anaconda3/lib/python3.11/site-packages/pathlib.py", line 10, in <module>
+    from collections import Sequence
+ImportError: cannot import name 'Sequence' from 'collections' (/home/tyh/anaconda3/lib/python3.11/collections/__init__.py)
+Exception ignored in: <function Interpreter.__del__ at 0x7fbb3cf3e840>
+Traceback (most recent call last):
+  File "/home/tyh/anaconda3/lib/python3.11/site-packages/em.py", line 4630, in __del__
+  File "/home/tyh/anaconda3/lib/python3.11/site-packages/em.py", line 4821, in shutdown
+  File "/home/tyh/anaconda3/lib/python3.11/site-packages/em.py", line 2029, in flush
+ValueError: I/O operation on closed file.
+[31m[1mCMake Error[0m at /opt/ros/noetic/share/catkin/cmake/safe_execute_process.cmake:11 (message):
+
+  execute_process(/home/tyh/DB_plan_Project/build/catkin_tools_prebuild/catkin_generated/env_cached.sh
+  "/home/tyh/anaconda3/bin/python3"
+  "/home/tyh/anaconda3/lib/python3.11/site-packages/em.py" "--raw-errors"
+  "-F"
+  "/home/tyh/DB_plan_Project/build/catkin_tools_prebuild/catkin_generated/pkg.develspace.context.pc.py"
+  "-o"
+  "/home/tyh/DB_plan_Project/devel/.private/catkin_tools_prebuild/lib/pkgconfig/catkin_tools_prebuild.pc"
+  "/opt/ros/noetic/share/catkin/cmake/em/pkg.pc.em") returned error code 1
+[36mCall Stack (most recent call first):[0m
+  /opt/ros/noetic/share/catkin/cmake/em_expand.cmake:25 (safe_execute_process)
+  /opt/ros/noetic/share/catkin/cmake/catkin_package.cmake:327 (em_expand)
+  /opt/ros/noetic/share/catkin/cmake/catkin_package.cmake:102 (_catkin_package)
+  CMakeLists.txt:7 (catkin_package)
+
+
