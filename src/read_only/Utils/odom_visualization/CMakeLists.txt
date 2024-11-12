@@ -33,8 +33,10 @@
 #target_link_libraries(odom_visualization pose_utils)
 
 #----------------------------------
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2) # 2.8.3
 project(odom_visualization)
+
+set(CMAKE_CXX_STANDARD 14)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -47,6 +49,11 @@ find_package(catkin REQUIRED COMPONENTS
   quadrotor_msgs
   tf
   pose_utils
+)
+
+find_library(POSE_UTILS_LIB pose_utils
+    PATHS ${catkin_LIBRARY_DIRS}
+    NO_DEFAULT_PATH
 )
 
 ## System dependencies are found with CMake's conventions
@@ -122,6 +129,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
+
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES irobot_msgs
@@ -135,6 +143,9 @@ catkin_package(
 find_package(Armadillo REQUIRED
     HDF5 REQUIRED
 )
+
+
+
 include_directories(${ARMADILLO_INCLUDE_DIRS}
    ${HDF5_INCLUDE_DIRS}
 )
@@ -159,12 +170,15 @@ add_executable(odom_visualization src/odom_visualization.cpp)
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(multi_map_visualization multi_map_server_messages_cpp)
 
+# Add explicit dependencies
+add_dependencies(odom_visualization ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 ## Specify libraries to link a library or executable target against
 target_link_libraries(odom_visualization
    ${catkin_LIBRARIES}
    ${ARMADILLO_LIBRARIES}
    ${HDF5_LIBRARIES}
-   pose_utils
+   ${POSE_UTILS_LIB}  # Change this line origin: pose_utils
 )
 
 #############

@@ -1,4 +1,26 @@
-<package>
+<?xml version="1.0"?>
+<package format="2">
+  <name>odom_visualization</name>
+  <version>0.0.0</version>
+  <description>odom_visualization</description>
+  <maintainer email="eeshaojie@todo.todo">Shaojie Shen</maintainer>
+  <license>BSD</license>
+  <url>http://ros.org/wiki/odom_visualization</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roscpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>visualization_msgs</depend>
+  <depend>tf</depend>
+  <depend>pose_utils</depend>
+  <depend>quadrotor_msgs</depend>  <!-- This was in CMakeLists.txt but missing here -->
+
+</package>
+
+
+<!-- <package>
   <version>0.0.0</version>
   <name>odom_visualization</name>
   <description>
@@ -28,4 +50,4 @@
 
 </package>
 
-
+ -->
