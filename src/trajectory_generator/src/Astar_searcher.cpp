@@ -69,14 +69,18 @@ void AstarPathFinder::setObs(const double coord_x, const double coord_y,
     data[idx_x * GLYZ_SIZE + idx_y * GLZ_SIZE + idx_z] = 1;
   else {
     data[idx_x * GLYZ_SIZE + idx_y * GLZ_SIZE + idx_z] = 1;
-    data[(idx_x + 1) * GLYZ_SIZE + (idx_y + 1) * GLZ_SIZE + idx_z] = 1;
-    data[(idx_x + 1) * GLYZ_SIZE + (idx_y - 1) * GLZ_SIZE + idx_z] = 1;
-    data[(idx_x - 1) * GLYZ_SIZE + (idx_y + 1) * GLZ_SIZE + idx_z] = 1;
-    data[(idx_x - 1) * GLYZ_SIZE + (idx_y - 1) * GLZ_SIZE + idx_z] = 1;
-    data[(idx_x)*GLYZ_SIZE + (idx_y + 1) * GLZ_SIZE + idx_z] = 1;
-    data[(idx_x)*GLYZ_SIZE + (idx_y - 1) * GLZ_SIZE + idx_z] = 1;
-    data[(idx_x + 1) * GLYZ_SIZE + (idx_y)*GLZ_SIZE + idx_z] = 1;
-    data[(idx_x - 1) * GLYZ_SIZE + (idx_y)*GLZ_SIZE + idx_z] = 1;
+    int inflate_size = 4;  // 膨胀大小
+    for(int i = -inflate_size; i <= inflate_size; i++){
+        for(int j = -inflate_size; j <= inflate_size; j++){
+            int x_number = idx_x + i;
+            int y_number = idx_y + j;
+            if(x_number >=0  && x_number < GLX_SIZE && 
+               y_number >=0 && y_number < GLY_SIZE){
+                data[x_number * GLYZ_SIZE + y_number * GLZ_SIZE + idx_z] = 1;
+            }
+        }
+    }
+
   }
 }
 
@@ -136,6 +140,7 @@ inline bool AstarPathFinder::isOccupied(const int &idx_x, const int &idx_y,
 
 inline bool AstarPathFinder::isFree(const int &idx_x, const int &idx_y,
                                     const int &idx_z) const {
+
   return (idx_x >= 0 && idx_x < GLX_SIZE && idx_y >= 0 && idx_y < GLY_SIZE &&
           idx_z >= 0 && idx_z < GLZ_SIZE &&
           (data[idx_x * GLYZ_SIZE + idx_y * GLZ_SIZE + idx_z] < 1));
@@ -200,7 +205,7 @@ double AstarPathFinder::getHeu(GridNodePtr node1, GridNodePtr node2) {
   dmid = dx + dy + dz - dmin - dmax;
 
   // Define heuristics type:
-  heu_type = "Euclidean";
+  heu_type = "Diagonal";
   
   if(heu_type=="Euclidean"){
       heu = sqrt(dx * dx + dy * dy + dz * dz);
@@ -217,12 +222,10 @@ double AstarPathFinder::getHeu(GridNodePtr node1, GridNodePtr node2) {
       ROS_INFO ("Error: invalid heuristic type!");
   }    
   
-  // Tie breaker: //selfadd: need explain!
+  // Tie breaker: //TODO: explain
   heu *= 1.001;
   // Test Info:
   //ROS_INFO("type=%s, heu=%.2f", heu_type, heu);
-
-
   return heu;
 }
 
@@ -376,67 +379,48 @@ vector<Vector3d> AstarPathFinder::pathSimplify(const vector<Vector3d> &path,
   double dmax = 0;
   size_t index = 0;
   const size_t end = path.size() - 1;
-  // cout <<"***inside pathSimplify, before for loop to calculate perpendicular distance for each point***"<< endl; // for test
   // Calculate perpendicular distance for each point
   // change to use cross product 
   Vector3d start_point = path[0];
   Vector3d end_point = path[end];
   for (size_t i = 1; i < end; ++i) {
-      // double d = perpendicularDistance(path[i], path[0], path[end]);
       // calculate perpendicular distance
       Vector3d i_point = path[i];
 
       Vector3d vec1 = end_point - start_point;
       Vector3d vec2 = i_point - start_point;
       double perpen_dist = (vec2.cross(vec1)).norm() / vec1.norm();
-      // double mm = path[end][0] - path[0][0];
-      // double nn = path[end][1] * path[0][1];
-      // double pp = path[end][2] * path[0][2];
-      // double numerator = std::sqrt(std::pow((path[end][1] - path[i][1]) * pp - (path[end][2] - path[i][2]) * nn ,2) + 
-      //                             std::pow((path[end][2] - path[i][2]) * mm - (path[end][0] - path[i][0]) * pp,2 ) +
-      //                             std::pow((path[end][0] - path[i][0]) * nn - (path[end][1] - path[i][1]) * mm,2 ));
-                                  
-      // double denominator = std::sqrt(std::pow(mm, 2) + 
-      //                               std::pow(nn, 2)+std::pow(pp, 2));      
-      // double perpen_dist = numerator / denominator;
+
 
       if (perpen_dist > dmax) {
           index = i;
           dmax = perpen_dist;
       }
   }
-  // cout <<"***inside pathSimplify, before cheking if dmax is larger than path_resolution***"<< endl; // for test
   // check if dmax is larger than path_resolution
   if (dmax > path_resolution){
-      // Split points and recursive calls
-      // vector<Vector3d> firstPart = path.segment(0,index);
-      // vector<Vector3d> secondPart = path.segment(index, path.size()-index);// can?//chongfu?
+
       vector<Vector3d> firstPart(path.begin(), path.begin() + index);
       vector<Vector3d> secondPart(path.begin() + index,path.end());
-      // cout <<"***inside pathSimplify, inside cheking if, before recResults1,recResults2***"<< endl; // for test
+
       vector<Vector3d> recResults1 = pathSimplify(firstPart, path_resolution);
       vector<Vector3d> recResults2 = pathSimplify(secondPart, path_resolution);
 
-      // subPath.segment(0,recResults1.size()-2) = recResults1.segment(0,recResults1.size()-2);
-      // subPath.segment(0,recResults2.size()) = recResults2(0,recResults2.size());// is it right?
-      // subPath.assign(recResults1.begin(), recResults1.begin() + (recResults1.size()-2));
-      // cout <<"***inside pathSimplify, inside cheking if, before assigning subpath***"<< endl; // for test
       subPath.reserve(recResults1.size() + recResults2.size() - 1);
       subPath.insert(subPath.end(), recResults1.begin(), recResults1.end());
       subPath.insert(subPath.end(), recResults2.begin() + 1, recResults2.end());
-      // std::copy(recResults1.begin(), recResults1.begin() + (recResults1.size()-2),subPath.begin());
-      // std::copy(recResults2.begin(), recResults2.end(), subPath.begin()+recResults1.size()-1);
+
 
   }else{
     subPath.reserve(2); // added to prevent multiple reallocations
     subPath.push_back(path[0]);
-    subPath.push_back(path[end]);// is it ok?
+    subPath.push_back(path[end]);
   }
 
   return subPath;
 }
 
-Vector3d AstarPathFinder::getPosPoly(MatrixXd polyCoeff, int k, double t) { //selfadd: polyCoeff: m x 3*8
+Vector3d AstarPathFinder::getPosPoly(MatrixXd polyCoeff, int k, double t) { //polyCoeff: m x 3*8
   Vector3d ret;
   int _poly_num1D = (int)polyCoeff.cols() / 3;
   for (int dim = 0; dim < 3; dim++) {
@@ -450,14 +434,12 @@ Vector3d AstarPathFinder::getPosPoly(MatrixXd polyCoeff, int k, double t) { //se
         time(j) = pow(t, j);
 
     ret(dim) = coeff.dot(time);
-    // cout << "dim:" << dim << " coeff:" << coeff << endl;
   }
 
   return ret;
 }
 
 int AstarPathFinder::safeCheck(MatrixXd polyCoeff, VectorXd time) {
-  // cout << "[Debug] inside Safety check, just strat" << endl; // for test
   int unsafe_segment = -1; //-1 -> the whole trajectory is safe
   /**
    *
@@ -477,22 +459,24 @@ int AstarPathFinder::safeCheck(MatrixXd polyCoeff, VectorXd time) {
           
           // Evaluate position polynomial //selfadd:  MatrixXd PolyCoeff(m, 3 * p_num1d);
           int p_num1d = polyCoeff.cols()/3;
-          for(int dim = 0; dim < p_num1d; dim++) {
-            // cout<<"in safecheck, seg, degree= "<<seg<<"/"<<segments<<","<<degree<<"/"<<p_num1d<<endl; // for test
+          for(int i = 0; i < p_num1d; i++) {
               Vector3d polyCoeff_trans;
-              polyCoeff_trans(0) = polyCoeff(seg, dim);
-              polyCoeff_trans(1) = polyCoeff(seg, p_num1d + dim);
-              polyCoeff_trans(2) = polyCoeff(seg, 2*p_num1d + dim);
-              pos += polyCoeff_trans * pow(t, dim);// but pos 是列向量？
+              polyCoeff_trans(0) = polyCoeff(seg, i);
+              polyCoeff_trans(1) = polyCoeff(seg, p_num1d + i);
+              polyCoeff_trans(2) = polyCoeff(seg, 2*p_num1d + i);
+              pos += polyCoeff_trans * pow(t/time(seg), i);// but pos 是列向量？
               // cout<<"pos= "<<pos<<endl;
               // if(i > 0) {
               //     vel += i * polyCoeff.block<3,1>(seg*3, i) * pow(t, i-1);
               // }
           }
-          
+          int idx_x = static_cast<int>((pos.x() - gl_xl) * inv_resolution);
+          int idx_y = static_cast<int>((pos.y() - gl_yl) * inv_resolution);
+          int idx_z = static_cast<int>((pos.z() - gl_zl) * inv_resolution);
           // Check position bounds
-          if(!isFree(pos.x(),pos.y(),pos.z())) {
+          if(!isFree(idx_x,idx_y,idx_z)) {
               unsafe_segment = seg;
+              std::cout<<"Find unsafe_segment!: "<<unsafe_segment<<std::endl;
               return unsafe_segment;
           }
           
@@ -503,55 +487,9 @@ int AstarPathFinder::safeCheck(MatrixXd polyCoeff, VectorXd time) {
           //     return unsafe_segment;
           // }
           
-          t += 0.1; // Sample step //???
+          t += 0.1; // Sample step 
       }
   }
 
   return unsafe_segment;
 }
-/**
- * Claude ai generate:
- * int AstarPathFinder::safeCheck(MatrixXd polyCoeff, VectorXd time) {
-    int unsafe_segment = -1; // -1 -> the whole trajectory is safe
-    
-    // Number of segments in the trajectory
-    int segments = time.size();
-    
-    // Check each segment
-    for(int seg = 0; seg < segments; seg++) {
-        double t = 0.0;
-        // Sample points within the segment duration
-        while(t <= time(seg)) {
-            Vector3d pos = Vector3d::Zero();
-            Vector3d vel = Vector3d::Zero();
-            
-            // Evaluate position polynomial
-            for(int i = 0; i < polyCoeff.cols(); i++) {
-                pos += polyCoeff.block<3,1>(seg*3, i) * pow(t, i);
-                if(i > 0) {
-                    vel += i * polyCoeff.block<3,1>(seg*3, i) * pow(t, i-1);
-                }
-            }
-            
-            // Check position bounds
-            if(pos.x() < _x_min || pos.x() > _x_max ||
-               pos.y() < _y_min || pos.y() > _y_max ||
-               pos.z() < _z_min || pos.z() > _z_max) {
-                unsafe_segment = seg;
-                return unsafe_segment;
-            }
-            
-            // Check velocity constraints
-            double vel_norm = vel.norm();
-            if(vel_norm > _max_vel) {
-                unsafe_segment = seg;
-                return unsafe_segment;
-            }
-            
-            t += 0.1; // Sample step
-        }
-    }
-    
-    return unsafe_segment;
-}
- */

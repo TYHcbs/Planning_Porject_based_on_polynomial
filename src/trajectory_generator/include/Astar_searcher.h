@@ -37,6 +37,9 @@ class AstarPathFinder
 		Eigen::Vector3d gridIndex2coord(const Eigen::Vector3i & index);
 		Eigen::Vector3i coord2gridIndex(const Eigen::Vector3d & pt);
 
+		double inflation_radius_;
+    	int inflation_cells_;
+
 	public:
 		AstarPathFinder(){};
 		~AstarPathFinder(){};

@@ -7,6 +7,11 @@ project(Project)
 set(CMAKE_CXX_STANDARD 14)
 set(CATKIN_TOPLEVEL TRUE)
 
+# set(CMAKE_PREFIX_PATH ${CMAKE_SOURCE_DIR}/your_project_folder ${CMAKE_PREFIX_PATH})
+
+# # Add OSQP before catkin workspace setup
+# add_subdirectory(${CMAKE_SOURCE_DIR}/../osqp ${CMAKE_BINARY_DIR}/osqp) #selfadd for osqp
+
 # search for catkin within the workspace
 set(_cmd "catkin_find_pkg" "catkin" "${CMAKE_SOURCE_DIR}")
 execute_process(COMMAND ${_cmd}

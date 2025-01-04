@@ -251,6 +251,8 @@ public:
             
             }
             cout<<"_coeff[_DIM_x]= "<<_coef[_DIM_x]<<endl;
+            cout<<"_coeff[_DIM_y]= "<<_coef[_DIM_y]<<endl;
+            cout<<"_coeff[_DIM_z]= "<<_coef[_DIM_z]<<endl;
         }
         else if (traj.action == quadrotor_msgs::PolynomialTrajectory::ACTION_ABORT) 
         {

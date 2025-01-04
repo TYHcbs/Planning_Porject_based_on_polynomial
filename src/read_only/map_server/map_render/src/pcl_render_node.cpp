@@ -90,6 +90,7 @@ void rcvGlobalPointCloudCallBack(const sensor_msgs::PointCloud2 &pointcloud_map)
     //transform map to point cloud format
     pcl::fromROSMsg(pointcloud_map, cloud_input);
     has_global_map = has_global_ground && true;
+    // std::cout<<"Global Pointcloud Size: "<<cloud_input.size()<<std::endl; //selfadd
     // for visualize only
     pcl::PointCloud<pcl::PointXYZ> cloud_vis;
     sensor_msgs::PointCloud2 map_vis;
@@ -105,7 +106,7 @@ void rcvGlobalPointCloudCallBack(const sensor_msgs::PointCloud2 &pointcloud_map)
         pt.y = cor_round(1);
         pt.z = cor_round(2);
         cloud_vis.points.push_back(pt);
-        cout<<"pt = "<<pt<<endl;
+        // cout<<"pt = "<<pt<<endl;
     }
 
     cloud_vis.width    = cloud_vis.points.size();

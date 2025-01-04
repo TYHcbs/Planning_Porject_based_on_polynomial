@@ -6,7 +6,7 @@ find_package(catkin REQUIRED COMPONENTS rviz roscpp)
 find_package(catkin_simple REQUIRED)
 find_package(cmake_modules)
 find_package(Eigen3 REQUIRED)
-find_package(decomp_util REQUIRED)
+# find_package(decomp_util REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIRS} ${DECOMP_UTIL_INCLUDE_DIRS})
 
 add_definitions(-DQT_NO_KEYWORDS)
@@ -42,5 +42,5 @@ target_link_libraries(decomp_rviz_plugins ${QT_LIBRARIES} ${catkin_LIBRARIES} ${
 
 cs_install()
 
-#cs_export()
-cs_export(DEPENDS decomp_util)
+cs_export()
+# cs_export(DEPENDS decomp_util)

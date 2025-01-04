@@ -11,7 +11,7 @@
 
   <depend>roscpp</depend>
   <depend>rosbag</depend>
-  <depend>decomp_util</depend>
+  <!-- <depend>decomp_util</depend> -->
   <depend>decomp_ros_utils</depend>
 
 </package>

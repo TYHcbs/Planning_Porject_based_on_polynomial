@@ -19,8 +19,8 @@
       <remap from="~local_pointcloud" to="/pcl_render_node/local_pointcloud"/> 
       <remap from="~odom"             to="/visual_slam/odom"/>
       
-      <param name="planning/vel"                value="0.1"  />  <!--modified 3.0-->
-      <param name="planning/acc"                value="8.0"  /><!--modified 2.0-->
+      <param name="planning/vel"                value="1.0"  />  <!--modified 3.0-->
+      <param name="planning/acc"                value="10.0"  /><!--modified 2.0-->
       <param name="planning/dev_order"          value="4"    />
       <param name="planning/min_order"          value="3"    />
       <param name="vis/vis_traj_width"          value="0.07" />

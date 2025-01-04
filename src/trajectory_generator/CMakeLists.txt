@@ -26,12 +26,16 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
   visualization_msgs
   quadrotor_msgs
+  decomp_ros_utils # modified
+  # decomp_util # modified
+  decomp_ros_msgs
 )
 
 
 find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED)
 set(Eigen3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
+find_package(osqp REQUIRED) # selfadded
 
 catkin_package()
 
@@ -53,4 +57,5 @@ add_executable(trajectory_generator_node
 target_link_libraries(trajectory_generator_node
    ${catkin_LIBRARIES}
    ${PCL_LIBRARIES}
+   osqp::osqp # selfadded #PUBLIC ?
 )
